@@ -1,0 +1,21 @@
+#ifndef ARGTEST_H
+#define ARGTEST_H
+
+#define REGISTER_ARGUMENT(name, type, value, description) \
+    static const ConsoleArgument name(#name, (type)(value), (description)); \
+    type get##name() \
+    { \
+        ConsoleArgument::getOrDefault<type>(#name, value); \
+    } \
+    void set##name(type &v) \
+    { \
+        ConsoleArgument(#name, (type)(v), (description)); \
+    }
+
+
+class Test
+{
+    REGISTER_ARGUMENT(SHOT_radius, float, 10.0f, "Search radius of SHOT descriptor")
+}
+
+#endif // ARGTEST_H
