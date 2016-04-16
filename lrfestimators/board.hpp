@@ -5,7 +5,7 @@
 
 #include "../lrfestimation.hpp"
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../pointcloud.h"
 
 namespace PoseEstimation
@@ -31,22 +31,22 @@ namespace PoseEstimation
             estimator.compute(*lrf);
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument searchRadius;
-        static ConsoleArgument findHoles;
+        static Parameter searchRadius;
+        static Parameter findHoles;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory BOARDLocalReferenceFrameEstimator<PointT>::argumentCategory(
+    ParameterCategory BOARDLocalReferenceFrameEstimator<PointT>::argumentCategory(
             "BOARD", "Local Reference Frame Estimation using BOrder Aware Repeatable Directions (BOARD)");
 
     template<typename PointT>
-    ConsoleArgument BOARDLocalReferenceFrameEstimator<PointT>::searchRadius = ConsoleArgument(
+    Parameter BOARDLocalReferenceFrameEstimator<PointT>::searchRadius = Parameter(
             "BOARD", "search_r", (float)10.0f, "Search radius of BOARD LRF estimation");
 
     template<typename PointT>
-    ConsoleArgument BOARDLocalReferenceFrameEstimator<PointT>::findHoles = ConsoleArgument(
+    Parameter BOARDLocalReferenceFrameEstimator<PointT>::findHoles = Parameter(
             "BOARD", "holes", true, "Search and account for holes in the margin of the support");
 }
 

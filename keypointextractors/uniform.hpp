@@ -4,7 +4,7 @@
 #include <pcl/filters/uniform_sampling.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../pointcloud.h"
 #include "../keypointextraction.hpp"
 
@@ -26,20 +26,20 @@ namespace PoseEstimation
             Logger::debug(boost::format("Extracted %d keypoints.") % keypoints->size());
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument searchRadius;
+        static Parameter searchRadius;
 
     private:
         pcl::UniformSampling<PointT> _uniform_sampling;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory UniformKeypointExtractor<PointT>::argumentCategory(
+    ParameterCategory UniformKeypointExtractor<PointT>::argumentCategory(
                 "uniform", "Keypoint extraction using Uniform Sampling");
 
     template<typename PointT>
-    ConsoleArgument UniformKeypointExtractor<PointT>::searchRadius = ConsoleArgument(
+    Parameter UniformKeypointExtractor<PointT>::searchRadius = Parameter(
                 "uniform",
                 "r",
                 5.0f,

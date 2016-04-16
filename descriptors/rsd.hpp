@@ -4,7 +4,7 @@
 #include <pcl/features/rsd.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../featuredescription.hpp"
 
 namespace PoseEstimation
@@ -20,7 +20,7 @@ namespace PoseEstimation
 
         RSDFeatureDescriptor()
         {
-            pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
+            typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
             _rsd.setSearchMethod(kdtree);
         }
 
@@ -28,44 +28,42 @@ namespace PoseEstimation
                              const typename pcl::PointCloud<PointT>::Ptr &,
                              pcl::PointCloud<DescriptorType>::Ptr &features)
         {
-            _rsd.setInputCloud(cloud);
-            _rsd.setInputNormals(normals);
-            _rsd.setRadiusSearch(pc.resolution() * searchRadius);
-            // Plane radius. Any radius larger than this is considered infinite (a plane).
-            _rsd.setPlaneRadius(0.1);
-            // Do we want to save the full distance-angle histograms?
-            _rsd.setSaveHistograms(false);
+            _rsd.setInputCloud(pc.cloud());
+            _rsd.setInputNormals(pc.normals());
+            _rsd.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
+            _rsd.setPlaneRadius(pc.resolution() * planeRadius.value<float>());
+            _rsd.setSaveHistograms(saveHistograms.value<bool>());
 
             Logger::tic("RSD Feature Extraction");
-            _RSD->compute(*features);
+            _rsd->compute(*features);
             Logger::toc("RSD Feature Extraction");
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument saveHistograms;
-        static ConsoleArgument searchRadius;
-        static ConsoleArgument planeRadius;
+        static Parameter saveHistograms;
+        static Parameter searchRadius;
+        static Parameter planeRadius;
 
     private:
         pcl::RSDEstimation<PointT, NormalType, DescriptorType> _rsd;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory RSDFeatureDescriptor<PointT>::argumentCategory(
+    ParameterCategory RSDFeatureDescriptor<PointT>::argumentCategory(
             "RSD", "Feature Description using Radius-based Surface Descriptor (RSD)");
 
     template<typename PointT>
-    ConsoleArgument RSDFeatureDescriptor<PointT>::saveHistograms = ConsoleArgument(
-            "RSD", "color", (bool)false, "Consider color information");
+    Parameter RSDFeatureDescriptor<PointT>::saveHistograms = Parameter(
+            "RSD", "save_hist", (bool)false, "Whether to save histograms");
 
     template<typename PointT>
-    ConsoleArgument RSDFeatureDescriptor<PointT>::searchRadius = ConsoleArgument(
+    Parameter RSDFeatureDescriptor<PointT>::searchRadius = Parameter(
             "RSD", "search_r", (float)5.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
 
     template<typename PointT>
-    ConsoleArgument RSDFeatureDescriptor<PointT>::planeRadius = ConsoleArgument(
-            "RSD", "LRF_r", (float)30.0f, "Maximum radius, above which everything can be considered planar (should be 10-20 times RSD_search_r)");
+    Parameter RSDFeatureDescriptor<PointT>::planeRadius = Parameter(
+            "RSD", "plane_r", (float)30.0f, "Maximum radius, above which everything can be considered planar (should be 10-20 times RSD_search_r)");
 }
 
 #endif // RSD_H

@@ -4,7 +4,7 @@
 #include <pcl/recognition/cg/hough_3d.h>
 
 #include "../transformationestimation.hpp"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../logger.h"
 
 namespace PoseEstimation
@@ -52,28 +52,28 @@ namespace PoseEstimation
             return !trans.empty();
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument binSize;
-        static ConsoleArgument threshold;
+        static Parameter binSize;
+        static Parameter threshold;
     private:
         pcl::Hough3DGrouping<PointT, PointT, RFType, RFType> _hough;
         LRFEstimatorT _lrfEstimator;
     };
 
     template<typename PointT, typename DescriptorT, typename LRFEstimatorT>
-    ConsoleArgumentCategory HoughVoting<PointT, DescriptorT, LRFEstimatorT>::argumentCategory(
+    ParameterCategory HoughVoting<PointT, DescriptorT, LRFEstimatorT>::argumentCategory(
             "hough", "Transformation estimation using Hough 3D Voting (Correspondence Grouping)");
 
     template<typename PointT, typename DescriptorT, typename LRFEstimatorT>
-    ConsoleArgument HoughVoting<PointT, DescriptorT, LRFEstimatorT>::binSize = ConsoleArgument(
+    Parameter HoughVoting<PointT, DescriptorT, LRFEstimatorT>::binSize = Parameter(
             "hough",
             "bin_size",
             5.0f,
             "Size per bin into the Hough space");
 
     template<typename PointT, typename DescriptorT, typename LRFEstimatorT>
-    ConsoleArgument HoughVoting<PointT, DescriptorT, LRFEstimatorT>::threshold = ConsoleArgument(
+    Parameter HoughVoting<PointT, DescriptorT, LRFEstimatorT>::threshold = Parameter(
             "hough",
             "thresh",
             5.0f,

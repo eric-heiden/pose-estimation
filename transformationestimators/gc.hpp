@@ -4,7 +4,7 @@
 #include <pcl/recognition/cg/geometric_consistency.h>
 
 #include "../transformationestimation.hpp"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../logger.h"
 
 namespace PoseEstimation
@@ -43,27 +43,27 @@ namespace PoseEstimation
             return !trans.empty();
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument resolution;
-        static ConsoleArgument threshold;
+        static Parameter resolution;
+        static Parameter threshold;
     private:
         pcl::GeometricConsistencyGrouping<PointT, PointT> _cg;
     };
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgumentCategory GeometricConsistency<PointT, DescriptorT>::argumentCategory(
+    ParameterCategory GeometricConsistency<PointT, DescriptorT>::argumentCategory(
             "cg", "Transformation estimation using Geometric Consistency (Correspondence Grouping)");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument GeometricConsistency<PointT, DescriptorT>::resolution = ConsoleArgument(
+    Parameter GeometricConsistency<PointT, DescriptorT>::resolution = Parameter(
             "cg",
             "resolution",
             5.0f,
             "Consensus set resolution");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument GeometricConsistency<PointT, DescriptorT>::threshold = ConsoleArgument(
+    Parameter GeometricConsistency<PointT, DescriptorT>::threshold = Parameter(
             "cg",
             "thresh",
             5.0f,

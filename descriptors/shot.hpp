@@ -3,7 +3,7 @@
 
 #include <pcl/features/shot_omp.h>
 
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../featuredescription.hpp"
 
 namespace PoseEstimation
@@ -44,30 +44,30 @@ namespace PoseEstimation
             Logger::toc("SHOT Feature Extraction");
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument useColor;
-        static ConsoleArgument searchRadius;
-        static ConsoleArgument lrfRadius;
+        static Parameter useColor;
+        static Parameter searchRadius;
+        static Parameter lrfRadius;
 
     private:
         pcl::SHOTColorEstimationOMP<PointT, NormalType, DescriptorType> *_shot;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory SHOTFeatureDescriptor<PointT>::argumentCategory(
+    ParameterCategory SHOTFeatureDescriptor<PointT>::argumentCategory(
             "SHOT", "Feature Extraction using Signature of Histograms of OrienTations (SHOT)");
 
     template<typename PointT>
-    ConsoleArgument SHOTFeatureDescriptor<PointT>::useColor = ConsoleArgument(
+    Parameter SHOTFeatureDescriptor<PointT>::useColor = Parameter(
             "SHOT", "color", (bool)false, "Consider color information");
 
     template<typename PointT>
-    ConsoleArgument SHOTFeatureDescriptor<PointT>::searchRadius = ConsoleArgument(
+    Parameter SHOTFeatureDescriptor<PointT>::searchRadius = Parameter(
             "SHOT", "search_r", (float)15.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
 
     template<typename PointT>
-    ConsoleArgument SHOTFeatureDescriptor<PointT>::lrfRadius = ConsoleArgument(
+    Parameter SHOTFeatureDescriptor<PointT>::lrfRadius = Parameter(
             "SHOT", "LRF_r", (float)27.5f, "Local Reference Frame (LRF) radius of SHOT descriptor");
 }
 

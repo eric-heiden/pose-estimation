@@ -3,9 +3,11 @@
 
 #include <pcl/features/intensity_gradient.h>
 #include <pcl/features/rift.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/features/normal_3d.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../featuredescription.hpp"
 
 namespace PoseEstimation
@@ -36,7 +38,7 @@ namespace PoseEstimation
         }
 
         virtual void describe(PC<PointT> &pc,
-                              const typename pcl::PointCloud<PointT>::Ptr &,
+                              const typename pcl::PointCloud<PointT>::Ptr &keypoints,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
             // convert cloud to intensity cloud
@@ -44,16 +46,30 @@ namespace PoseEstimation
             pcl::copyPointCloud(*(pc.cloud()), *intensity);
 
             // compute intensity gradients
-            pcl::PointCloud<pcl::IntensityGradient>::Ptr gradients(new pcl::PointCloud<pcl::IntensityGradient>);
-            pcl::IntensityGradientEstimation<pcl::PointXYZI, pcl::Normal, pcl::IntensityGradient,
+            pcl::IntensityGradientEstimation<pcl::PointXYZI, NormalType, pcl::IntensityGradient,
                 pcl::common::IntensityFieldAccessor<pcl::PointXYZI> > ge;
             ge.setInputCloud(intensity);
-            ge.setInputNormals(pc.normals());
+
+            // normal estimation of intensity cloud
+            pcl::PointCloud<NormalType>::Ptr normals(new pcl::PointCloud<NormalType>);
+            pcl::NormalEstimationOMP<pcl::PointXYZI, NormalType> ne;
+            ne.setInputCloud(intensity);
+            pcl::search::KdTree<pcl::PointXYZI>::Ptr ne_tree(new pcl::search::KdTree<pcl::PointXYZI>(false));
+            ne.setSearchMethod(ne_tree);
+            ne.setRadiusSearch(pc.resolution() * normalRadius.value<float>());
+            ne.compute(*normals);
+            pcl::PointCloud<NormalType>::ConstPtr cnormals(normals);
+            ge.setInputNormals(cnormals);
+
             ge.setRadiusSearch(pc.resolution() * gradientRadius.value<float>());
+
+            pcl::PointCloud<pcl::IntensityGradient>::Ptr gradients(new pcl::PointCloud<pcl::IntensityGradient>);
             ge.compute(*gradients);
 
+            // RIFT feature extraction
             _rift.setInputCloud(intensity);
-            _rift.setSearchMethod(kdtree);
+            typename pcl::search::KdTree<pcl::PointXYZI>::Ptr rift_tree(new pcl::search::KdTree<pcl::PointXYZI>);
+            _rift.setSearchMethod(rift_tree);
             _rift.setInputGradient(gradients);
             _rift.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
 
@@ -62,26 +78,31 @@ namespace PoseEstimation
             Logger::toc("RIFT Feature Extraction");
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument gradientRadius;
-        static ConsoleArgument searchRadius;
+        static Parameter gradientRadius;
+        static Parameter searchRadius;
+        static Parameter normalRadius;
 
     private:
         pcl::RIFTEstimation<pcl::PointXYZI, pcl::IntensityGradient, DescriptorType> _rift;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory RIFTFeatureDescriptor<PointT>::argumentCategory(
-            "RIFT", "Feature description using Rotation Invariant Feature Transform (RIFT)";
+    ParameterCategory RIFTFeatureDescriptor<PointT>::argumentCategory(
+            "RIFT", "Feature description using Rotation Invariant Feature Transform (RIFT)");
 
     template<typename PointT>
-    ConsoleArgument RIFTFeatureDescriptor<PointT>::gradientRadius = ConsoleArgument(
-            "RIFT", "gradient_r", (float)3.0f, "Search radius for intensity gradient computation");
+    Parameter RIFTFeatureDescriptor<PointT>::gradientRadius = Parameter(
+            "RIFT", "gradient_r", (float)50.0f, "Search radius for intensity gradient computation");
 
     template<typename PointT>
-    ConsoleArgument RIFTFeatureDescriptor<PointT>::searchRadius = ConsoleArgument(
-            "RIFT", "search_r", (float)2.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
+    Parameter RIFTFeatureDescriptor<PointT>::searchRadius = Parameter(
+            "RIFT", "search_r", (float)50.0f, "Search radius for finding neighbors, must be larger than RIFT_normal_nn");
+
+    template<typename PointT>
+    Parameter RIFTFeatureDescriptor<PointT>::normalRadius = Parameter(
+            "RIFT", "normal_nn", (float)20.0f, "Search radius for finding neighbors for normal estimation");
 }
 
 #endif // RIFT_H

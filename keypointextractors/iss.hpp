@@ -4,7 +4,7 @@
 #include <pcl/keypoints/iss_3d.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../pointcloud.h"
 #include "../keypointextraction.hpp"
 

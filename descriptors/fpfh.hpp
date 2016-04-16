@@ -4,7 +4,7 @@
 #include <pcl/features/fpfh.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../featuredescription.hpp"
 
 namespace PoseEstimation
@@ -22,7 +22,7 @@ namespace PoseEstimation
                               const typename pcl::PointCloud<PointT>::Ptr &,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
-            pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
+            typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
             _fpfh.setInputCloud(pc.cloud());
             _fpfh.setInputNormals(pc.normals());
             _fpfh.setSearchMethod(kdtree);
@@ -33,20 +33,20 @@ namespace PoseEstimation
             Logger::toc("FPFH Feature Extraction");
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument searchRadius;
+        static Parameter searchRadius;
 
     private:        
         pcl::FPFHEstimation<PointT, NormalType, DescriptorType> _fpfh;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory FPFHFeatureDescriptor<PointT>::argumentCategory(
+    ParameterCategory FPFHFeatureDescriptor<PointT>::argumentCategory(
             "FPFH", "Fast Point Feature Histogram (FPFH)");
 
     template<typename PointT>
-    ConsoleArgument FPFHFeatureDescriptor<PointT>::searchRadius = ConsoleArgument(
+    Parameter FPFHFeatureDescriptor<PointT>::searchRadius = Parameter(
             "FPFH", "search_r", (float)20.0f,
             "Search radius for finding neighbors, must be larger than pc_normal_nn");
 }

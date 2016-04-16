@@ -3,7 +3,7 @@
 #include <pcl/console/parse.h>
 
 #include "logger.h"
-#include "consoleargument.h"
+#include "parameter.h"
 #include "pointcloud.h"
 #include "visualizer.h"
 #include "pipeline.hpp"
@@ -19,12 +19,14 @@ void showHelp(char *appname)
     std::cout << "*                                                                         *" << std::endl;
     std::cout << "***************************************************************************" << std::endl;
     std::cout << "Usage: " << *appname << " source_filename.pcd target_filename.pcd" << std::endl << std::endl;
-    ConsoleArgument::displayAll();
+    Parameter::displayAll();
 }
 
 int main(int argc, char **argv)
 {
-    ConsoleArgument::parseAll(argc, argv);
+    Parameter::parseAll(argc, argv);
+
+    Parameter::saveAll();
 
     if (pcl::console::find_switch(argc, argv, "-h"))
         showHelp(argv[0]);

@@ -4,7 +4,7 @@
 #include <pcl/features/spin_image.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../featuredescription.hpp"
 
 namespace PoseEstimation
@@ -41,23 +41,23 @@ namespace PoseEstimation
             Logger::toc("SI Feature Extraction");
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument searchRadius;
-        static ConsoleArgument minRadius;
-        static ConsoleArgument lrfRadius;
-        static ConsoleArgument densityRadius;
+        static Parameter searchRadius;
+        static Parameter minRadius;
+        static Parameter lrfRadius;
+        static Parameter densityRadius;
 
     private:
         pcl::SpinImageEstimation<PointT, DescriptorType, RFType> _si;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory SpinImageFeatureDescriptor<PointT>::argumentCategory(
-            "SI", "Feature Description using Spin Images (SI)";
+    ParameterCategory SpinImageFeatureDescriptor<PointT>::argumentCategory(
+            "SI", "Feature Description using Spin Images (SI)");
 
     template<typename PointT>
-    ConsoleArgument SpinImageFeatureDescriptor<PointT>::searchRadius = ConsoleArgument(
+    Parameter SpinImageFeatureDescriptor<PointT>::searchRadius = Parameter(
             "SI", "search_r", (float)5.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
 }
 

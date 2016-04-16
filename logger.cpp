@@ -51,6 +51,16 @@ void Logger::error(const boost::format &fmt)
     std::cerr << (_log_format % "ERROR" % _timestr() % fmt.str()) << std::endl;
 }
 
+void Logger::warning(const std::string &text)
+{
+    std::cerr << (_log_format % "WARNING" % _timestr() % text) << std::endl;
+}
+
+void Logger::warning(const boost::format &fmt)
+{
+    std::cerr << (_log_format % "WARNING" % _timestr() % fmt.str()) << std::endl;
+}
+
 void Logger::tic(const std::string &title)
 {
     _tics[title] = boost::posix_time::microsec_clock::local_time();
@@ -63,6 +73,7 @@ void Logger::toc(const std::string &title)
         boost::posix_time::ptime toc = boost::posix_time::microsec_clock::local_time();
         boost::posix_time::time_duration diff = toc - _tics[title];
         log(boost::format("%1% finished in %2%") % title % diff);
+        _tics.erase(title);
     }
 }
 

@@ -22,6 +22,9 @@ namespace PoseEstimation
         static void error(const std::string &text);
         static void error(const boost::format &fmt);
 
+        static void warning(const std::string &text);
+        static void warning(const boost::format &fmt);
+
         static void tic(const std::string &title);
         static void toc(const std::string &title);
 

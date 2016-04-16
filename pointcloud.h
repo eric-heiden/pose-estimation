@@ -12,7 +12,7 @@
 
 #include "logger.h"
 #include "types.h"
-#include "consoleargument.h"
+#include "parameter.h"
 
 namespace PoseEstimation
 {
@@ -55,7 +55,7 @@ namespace PoseEstimation
         size_t size() const
         {
             if (_cloud.get())
-                return _cloud->points.size();
+                return _cloud->size();
             return 0;
         }
 
@@ -163,8 +163,17 @@ namespace PoseEstimation
             return _normals;
         }
 
-        static ConsoleArgumentCategory argumentCategory;
-        static ConsoleArgument normalEstimationRadius;
+        /**
+         * @brief Resets normals and cloud resolution to be updated on next access.
+         */
+        void update()
+        {
+            _normals->clear();
+            _resolution = 0;
+        }
+
+        static ParameterCategory argumentCategory;
+        static Parameter normalEstimationRadius;
 
     private:
         typename pcl::PointCloud<PointT>::Ptr _cloud;
@@ -205,11 +214,11 @@ namespace PoseEstimation
     typedef PC<NormalType> NormalCloud;
 
     template<typename PointT>
-    ConsoleArgumentCategory PC<PointT>::argumentCategory(
+    ParameterCategory PC<PointT>::argumentCategory(
             "pc", "Point Cloud computations");
 
     template<typename PointT>
-    ConsoleArgument PC<PointT>::normalEstimationRadius = ConsoleArgument(
+    Parameter PC<PointT>::normalEstimationRadius = Parameter(
             "pc", "normal_nn", (float)20.0f, "Search radius of nearest neighbor normal estimation");
 }
 

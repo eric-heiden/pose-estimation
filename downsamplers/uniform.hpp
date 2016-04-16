@@ -4,7 +4,7 @@
 #include <pcl/filters/uniform_sampling.h>
 
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../pointcloud.h"
 #include "../downsampling.hpp"
 
@@ -20,22 +20,23 @@ namespace PoseEstimation
             uniform_sampling.setRadiusSearch(sampleSize.value<float>() * pc.resolution());
             uniform_sampling.setInputCloud(pc.cloud());
             uniform_sampling.filter(*(downsampled.cloud()));
+            downsampled.update();
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument sampleSize;
+        static Parameter sampleSize;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory UniformDownsampler<PointT>::argumentCategory(
+    ParameterCategory UniformDownsampler<PointT>::argumentCategory(
                 "uniformdown", "Uniform downsampling");
 
     template<typename PointT>
-    ConsoleArgument UniformDownsampler<PointT>::sampleSize = ConsoleArgument(
+    Parameter UniformDownsampler<PointT>::sampleSize = Parameter(
                 "uniformdown",
                 "size",
-                3.0f,
+                10.0f,
                 "Sample size");
 }
 

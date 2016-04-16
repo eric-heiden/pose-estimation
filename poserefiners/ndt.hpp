@@ -4,7 +4,7 @@
 #include <pcl/registration/ndt.h>
 
 #include "../poserefinement.hpp"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../logger.h"
 
 namespace PoseEstimation

@@ -7,7 +7,7 @@
 
 #include "../featurematching.hpp"
 #include "../types.h"
-#include "../consoleargument.h"
+#include "../parameter.h"
 #include "../pointcloud.h"
 
 namespace PoseEstimation
@@ -27,10 +27,15 @@ namespace PoseEstimation
             match_search.setInputCloud(target_descriptors);
 
             double sum = 0, number = 0; // used for avg calculation
+            typename pcl::DefaultPointRepresentation<DescriptorT> representation;
+            size_t skipped = 0;
             for (size_t i = 0; i < source_descriptors->size(); ++i)
             {
-                if (!pcl_isfinite(source_descriptors->at(i).descriptor[0])) // skip NaNs
+                if (!representation.isValid(source_descriptors->at(i))) // skip NaNs
+                {
+                    ++skipped;
                     continue;
+                }
 
                 // find the single closest descriptor
                 std::vector<int> nn_idx(1); // indices of nearest neighbors
@@ -50,19 +55,27 @@ namespace PoseEstimation
                 nn_dist.clear();
             }
 
+            if (skipped > 0)
+                Logger::warning(boost::format("Skipped %d of %d source cloud descriptors because they were invalid.")
+                              % skipped % source_descriptors->size());
+
+            if (correspondences->empty())
+                Logger::error(boost::format("No correspondences between source and target descriptors were found."));
+
             std::sort(correspondences->begin(), correspondences->end(), _compareCorrespondences);
 
             // remove correspondences that are not within the given percentage
             int top = (1.0f - matchThreshold.value<float>()) * correspondences->size();
             correspondences->erase(correspondences->begin() + top, correspondences->end());
 
-            Logger::debug(boost::format("Found %d correspondences.") % correspondences->size());
+            Logger::debug(boost::format("Found %d correspondences in the top %.2f%% closest distance range.")
+                          % correspondences->size() % (matchThreshold.value<float>() * 100.0f));
             Logger::debug(boost::format("Average correspondence distance: %d") % (sum/number));
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument matchThreshold;
+        static Parameter matchThreshold;
 
     private:
         static bool _compareCorrespondences(const pcl::Correspondence &l, const pcl::Correspondence &r)
@@ -72,11 +85,11 @@ namespace PoseEstimation
     };
 
     template<typename DescriptorT>
-    ConsoleArgumentCategory KdTreeFeatureMatcher<DescriptorT>::argumentCategory(
+    ParameterCategory KdTreeFeatureMatcher<DescriptorT>::argumentCategory(
                 "kd_match", "Kd-tree correspondence matching");
 
     template<typename DescriptorT>
-    ConsoleArgument KdTreeFeatureMatcher<DescriptorT>::matchThreshold = ConsoleArgument(
+    Parameter KdTreeFeatureMatcher<DescriptorT>::matchThreshold = Parameter(
                 "kd_match",
                 "thresh",
                 (float)0.15f,
