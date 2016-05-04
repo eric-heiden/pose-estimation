@@ -1,6 +1,8 @@
 #ifndef DEFAULTS_H
 #define DEFAULTS_H
 
+#include <memory>
+
 #include "keypointextractors/uniform.hpp"
 #include "descriptors/shot.hpp"
 #include "descriptors/usc.hpp"
@@ -14,16 +16,18 @@
 #include "featurematcher/kdtree.hpp"
 #include "downsamplers/voxelgrid.hpp"
 
+#include "downsampling.hpp"
+#include "keypointextraction.hpp"
+#include "featuredescription.hpp"
+#include "featurematching.hpp"
+
 namespace PoseEstimation
 {
-    /**********************************************************
-     *  Default modules used by the Pose Estimation pipeline  *
-     **********************************************************/
     typedef VoxelGridDownsampler<PointType> DefaultDownsampler;
     typedef UniformKeypointExtractor<PointType> DefaultKeypointExtractor;
     typedef BOARDLocalReferenceFrameEstimator<PointType> DefaultLRFEstimator;
-    //typedef SHOTFeatureDescriptor<PointType> DefaultFeatureDescriptor;
-    typedef RIFTFeatureDescriptor<PointType> DefaultFeatureDescriptor;
+    typedef FPFHFeatureDescriptor<PointType> DefaultFeatureDescriptor;
+    //typedef RIFTFeatureDescriptor<PointType> DefaultFeatureDescriptor;
     typedef DefaultFeatureDescriptor::DescriptorType DescriptorType;
     //typedef HoughVoting<DescriptorType, DefaultLRFEstimator> DefaultTransformationEstimator;
     typedef GeometricConsistency<PointType, DescriptorType> DefaultTransformationEstimator;

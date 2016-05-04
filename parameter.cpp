@@ -1,5 +1,7 @@
 #include <fstream>
 
+#include <boost/algorithm/string/join.hpp>
+
 #include <pcl/io/pcd_io.h>
 #include <pcl/console/parse.h>
 
@@ -57,11 +59,6 @@ std::string Parameter::_parseName() const
     return (boost::format("--%s_%s") % _category % _name).str();
 }
 
-void Parameter::setValue(const SupportedValue &value)
-{
-    _value = value;
-}
-
 std::string type_name(PoseEstimation::SupportedValue &v)
 {
     if (v.type() == typeid(int))
@@ -77,25 +74,29 @@ std::string type_name(PoseEstimation::SupportedValue &v)
     return "unknown";
 }
 
+void Parameter::_display()
+{
+    std::cout << std::left << std::setw(26) << std::setfill(' ') << _parseName()
+              << std::left << std::setw(58) << std::setfill(' ') << description()
+              << " ([" << type_name(_value) << "] "
+              <<  boost::lexical_cast<std::string>(_value) << ")" << std::endl;
+}
+
 /**
  * @brief Prints all registered arguments with their descriptions and default values
  * to stdout.
  */
 void Parameter::displayAll()
 {
-    for (std::map<std::string, std::vector<Parameter*> >::iterator vit = _categorized.begin(); vit != _categorized.end(); ++vit)
+    for (auto &&vit : _categorized)
     {
-        std::cout << vit->first;
-        if (!_categories[vit->first].empty())
-            std::cout << " (" << _categories[vit->first] << ")";
+        std::cout << vit.first;
+        if (!_categories[vit.first].empty())
+            std::cout << " (" << _categories[vit.first] << ")";
         std::cout << std::endl;
-        for (std::vector<Parameter*>::iterator it = vit->second.begin(); it != vit->second.end(); ++it)
+        for (Parameter *arg : vit.second)
         {
-            Parameter *arg = *it;
-            std::cout << std::left << std::setw(26) << std::setfill(' ') << arg->_parseName()
-                      << std::left << std::setw(58) << std::setfill(' ') << arg->description()
-                      << " ([" << type_name(arg->_value) << "] "
-                      <<  boost::lexical_cast<std::string>(arg->_value) << ")" << std::endl;
+            arg->_display();
         }
     }
 }
@@ -130,15 +131,14 @@ void _set_json_arg_value(Json &jarg, SupportedValue &value)
 bool Parameter::saveAll(const std::string &filename)
 {
     Json j;
-    for (std::map<std::string, std::vector<Parameter*> >::iterator vit = _categorized.begin(); vit != _categorized.end(); ++vit)
+    for (auto &&vit : _categorized)
     {
         // create category
-        std::string category = vit->first;
+        std::string category = vit.first;
         j[category]["description"] = _categories[category];
-        j[category]["parameters"] = Json::array;
-        for (std::vector<Parameter*>::iterator it = vit->second.begin(); it != vit->second.end(); ++it)
+        j[category]["parameters"] = std::vector<Json>();
+        for (Parameter *arg : vit.second)
         {
-            Parameter *arg = *it;
             Json jarg;
             jarg["name"] = arg->name();
             _set_json_arg_value(jarg, arg->_value);
@@ -146,8 +146,6 @@ bool Parameter::saveAll(const std::string &filename)
             j[category]["parameters"].push_back(jarg);
         }
     }
-    std::string r = j.dump(4);
-    std::cout << r << std::endl;
 
     std::ofstream fout(filename);
     if (!fout)
@@ -156,6 +154,7 @@ bool Parameter::saveAll(const std::string &filename)
         return false;
     }
 
+    std::string r = j.dump(4);
     fout << r;
 
     return true;
@@ -193,7 +192,93 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
         _categorized[name] = std::vector<Parameter*>();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ParameterCategory::ParameterCategory(const std::string &name, const std::string &description)
 {
     Parameter::_defineCategory(name, description);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+EnumParameter::EnumParameter(const std::string &category, const std::string &name, std::initializer_list<std::string> value, const std::string &description)
+    : Parameter(category, name, Enum::define(value), description)
+{
+
+}
+
+EnumParameter::EnumParameter(const std::string &category, const std::string &name, Enum &value, const std::string &description)
+    : Parameter(category, name, value, description)
+{
+
+}
+
+void EnumParameter::_display()
+{
+    Enum val = boost::get<Enum>(_value);
+    std::cout << std::left << std::setw(26) << std::setfill(' ') << _parseName()
+              << std::left << std::setw(58) << std::setfill(' ') << description()
+              << " ([Enum of " << boost::algorithm::join(val.names(), "|") << "] "
+              << val.valueName() << ")" << std::endl;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Enum::Enum()
+{
+    value = 0;
+}
+
+std::string Enum::valueName() const
+{
+    if (value >= _map.size())
+    {
+        throw std::exception();
+    }
+
+    return _map.left.at(value);
+}
+
+bool Enum::get(std::string name, int &id) const
+{
+    if (_map.right.find(name) == _map.right.end())
+        return false;
+
+    id = _map.right.at(name);
+    return true;
+}
+
+bool Enum::get(int id, std::string &name) const
+{
+    if (_map.left.find(id) == _map.left.end())
+        return false;
+
+    name = _map.left.at(id);
+    return true;
+}
+
+size_t Enum::size() const
+{
+    return _map.size();
+}
+
+std::vector<std::string> Enum::names() const
+{
+    std::vector<std::string> ns;
+    for (auto name: _map.right)
+        ns.push_back(name.first);
+
+    return ns;
+}
+
+Enum Enum::define(std::initializer_list<std::string> _names)
+{
+    Enum e;
+    int i = 0;
+    for (auto name : _names)
+    {
+        e._map.insert(boost::bimap<int, std::string>::value_type(i, name));
+    }
+
+    return e;
 }

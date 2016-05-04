@@ -19,10 +19,11 @@ namespace PoseEstimation
         typedef pcl::UniqueShapeContext1960 DescriptorType;
 
         virtual void describe(PC<PointT> &pc,
-                              const typename pcl::PointCloud<PointT>::Ptr &,
+                              const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
-            _usc.setInputCloud(pc.cloud());
+            _usc.setInputCloud(keypoints);
             _usc.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
             _usc.setMinimalRadius(pc.resolution() * minRadius.value<float>());
             _usc.setPointDensityRadius(pc.resolution() * densityRadius.value<float>());

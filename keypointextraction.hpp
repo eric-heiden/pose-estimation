@@ -3,6 +3,7 @@
 
 #include <pcl/point_cloud.h>
 
+#include "pipelinemodule.hpp"
 #include "pointcloud.h"
 
 namespace PoseEstimation
@@ -11,9 +12,12 @@ namespace PoseEstimation
      * @brief Abstract module for keypoint extraction from point clouds.
      */
     template<typename PointT>
-    class KeypointExtractor
+    class KeypointExtractor : public PipelineModule
     {
     public:
+        KeypointExtractor() : PipelineModule(PipelineModuleType::KeypointExtractor)
+        {}
+
         virtual void extract(PC<PointT> &pc, typename pcl::PointCloud<PointT>::Ptr &keypoints) = 0;
     };
 }

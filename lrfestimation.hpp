@@ -1,6 +1,7 @@
 #ifndef LocalReferenceFrameEstimator_H
 #define LocalReferenceFrameEstimator_H
 
+#include "pipelinemodule.hpp"
 #include "types.h"
 #include "pointcloud.h"
 

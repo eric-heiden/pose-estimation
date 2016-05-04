@@ -39,11 +39,12 @@ namespace PoseEstimation
 
         virtual void describe(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
             // convert cloud to intensity cloud
             pcl::PointCloud<pcl::PointXYZI>::Ptr intensity(new pcl::PointCloud<pcl::PointXYZI>);
-            pcl::copyPointCloud(*(pc.cloud()), *intensity);
+            pcl::copyPointCloud(*keypoints, *intensity);
 
             // compute intensity gradients
             pcl::IntensityGradientEstimation<pcl::PointXYZI, NormalType, pcl::IntensityGradient,

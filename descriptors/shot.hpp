@@ -31,13 +31,24 @@ namespace PoseEstimation
 
         virtual void describe(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &normals,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
+            Logger::debug("SHOT 1");
+            Logger::debug(boost::format("sr: %1%") % (pc.resolution() * searchRadius.value<float>()));
             _shot->setRadiusSearch(pc.resolution() * searchRadius.value<float>());
+            Logger::debug("SHOT 2");
+            Logger::debug(boost::format("lr: %1%") % (pc.resolution() * lrfRadius.value<float>()));
             _shot->setLRFRadius(pc.resolution() * lrfRadius.value<float>());
+            Logger::debug("SHOT 3");
+            Logger::debug(boost::format("Keypoints: %1%") % keypoints->size());
             _shot->setInputCloud(keypoints);
-            _shot->setInputNormals(pc.normals());
+            Logger::debug("SHOT 4");
+            _shot->setInputNormals(normals);
+            Logger::debug("SHOT 5");
             _shot->setSearchSurface(pc.cloud());
+
+            Logger::debug("Start shot");
 
             Logger::tic("SHOT Feature Extraction");
             _shot->compute(*descriptors);

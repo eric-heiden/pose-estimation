@@ -30,10 +30,11 @@ namespace PoseEstimation
         }
 
         virtual void describe(PC<PointT> &pc,
-                              const typename pcl::PointCloud<PointT>::Ptr &,
+                              const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
-            _si.setInputCloud(pc.cloud());
+            _si.setInputCloud(keypoints);
             _si.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
 
             Logger::tic("SI Feature Extraction");

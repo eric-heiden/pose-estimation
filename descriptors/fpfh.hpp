@@ -19,12 +19,13 @@ namespace PoseEstimation
         typedef pcl::FPFHSignature33 DescriptorType;
 
         virtual void describe(PC<PointT> &pc,
-                              const typename pcl::PointCloud<PointT>::Ptr &,
+                              const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &normals,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
             typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
-            _fpfh.setInputCloud(pc.cloud());
-            _fpfh.setInputNormals(pc.normals());
+            _fpfh.setInputCloud(keypoints);
+            _fpfh.setInputNormals(normals);
             _fpfh.setSearchMethod(kdtree);
             _fpfh.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
 

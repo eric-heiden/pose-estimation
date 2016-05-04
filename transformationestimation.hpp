@@ -4,6 +4,7 @@
 #include <vector>
 #include <Eigen/Geometry>
 
+#include "pipelinemodule.hpp"
 #include "types.h"
 #include "pointcloud.h"
 
@@ -13,9 +14,12 @@ namespace PoseEstimation
      * @brief Abstract module for transformation estimation between two point clouds.
      */
     template<typename PointT, typename DescriptorT>
-    class TransformationEstimator
+    class TransformationEstimator : public PipelineModule
     {
     public:
+        TransformationEstimator() : PipelineModule(PipelineModuleType::TransformationEstimator)
+        {}
+
         /**
          * @brief Estimates the rigid transformation of the source to the target point cloud
          * using the correspondences of descriptors calculated at the keypoints of both

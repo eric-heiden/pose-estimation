@@ -1,19 +1,54 @@
-#ifndef CONSOLEARGUMENT_H
-#define CONSOLEARGUMENT_H
+#ifndef PARAMETER_H
+#define PARAMETER_H
 
 #include <map>
 #include <vector>
+#include <ostream>
+#include <initializer_list>
+
 #include <boost/variant.hpp>
+#include <boost/bimap.hpp>
+
 #include <pcl/console/parse.h>
 
 namespace PoseEstimation
 {
-    typedef boost::variant<int, float, char, bool, std::string> SupportedValue;
-
     class ParameterCategory;
+    class EnumParameter;
 
     /**
-     * @brief Abstracts command-line interface arguments. Each argument is grouped under a {@see ConsoleArgumentCategory}
+     * @brief Abstracts an element in a set of discrete values.
+     */
+    class Enum //TODO: Make generic? Now only string values are supported.
+    {
+        friend class EnumParameter;
+    public:
+        Enum();
+
+        int value;
+        std::string valueName() const;
+
+        bool get(std::string name, int &id) const;
+        bool get(int id, std::string &name) const;
+
+        size_t size() const;
+        std::vector<std::string> names() const;
+
+        static Enum define(std::initializer_list<std::string> _names);
+
+        friend std::ostream& operator<<(std::ostream &os, Enum const &e)
+        {
+            return os << e.valueName();
+        }
+
+    private:
+        boost::bimap<int, std::string> _map;
+    };
+
+    typedef boost::variant<int, float, char, bool, std::string, Enum> SupportedValue;
+
+    /**
+     * @brief Abstracts module parameters. Each argument is grouped under a {@see ParameterCategory}
      * and has a name, value, and an optional description.
      *
      * From the commandline, arguments can be set using --[category]_[name] [value]
@@ -21,11 +56,12 @@ namespace PoseEstimation
     class Parameter
     {
         friend class ParameterCategory;
+        friend class EnumParameter;
     public:
         Parameter(const std::string &category,
-                        const std::string &name,
-                        const SupportedValue &value,
-                        const std::string &description = "");
+                  const std::string &name,
+                  const SupportedValue &value,
+                  const std::string &description = "");
 
         /**
          * @brief The identifying name of the console argument.
@@ -54,7 +90,10 @@ namespace PoseEstimation
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        void setValue(const SupportedValue &value);
+        virtual inline void setValue(const SupportedValue &value)
+        {
+            _value = value;
+        }
 
         /**
          * @brief Prints all registered arguments with their descriptions and default values
@@ -97,6 +136,7 @@ namespace PoseEstimation
         std::string _category;
         std::string _parseName() const;
         SupportedValue _value;
+        virtual void _display();
         static std::map<std::string, Parameter*> _allArgs;
         static std::map<std::string, std::vector<Parameter*> > _categorized;
         static std::map<std::string, std::string> _categories;
@@ -121,6 +161,54 @@ namespace PoseEstimation
     };
 
     /**
+     * @brief Abstract an enumeration parameter that takes a value from a discrete set of names.
+     */
+    class EnumParameter : public Parameter
+    {
+    public:
+        EnumParameter(const std::string &category,
+                      const std::string &name,
+                      Enum &value,
+                      const std::string &description = "");
+        EnumParameter(const std::string &category,
+                      const std::string &name,
+                      std::initializer_list<std::string> value,
+                      const std::string &description = "");
+
+        /**
+         * @brief Defines the value of the console argument.
+         * @param value The value.
+         */
+        virtual inline void setValue(const Enum &value)
+        {
+            _value = value;
+        }
+
+        /**
+         * @brief Defines the value of the console argument.
+         * @param value The value.
+         */
+        virtual inline void setValue(const std::initializer_list<std::string> &value)
+        {
+            _value = Enum::define(value);
+        }
+
+        /**
+         * @brief Defines the value of the console argument.
+         * @param value The value.
+         */
+        virtual inline void setValue(const std::string &value)
+        {
+            int id;
+            if ((boost::get<Enum>(_value)).get(value, id))
+                (boost::get<Enum>(_value)).value = id;
+        }
+
+    private:
+        virtual void _display();
+    };
+
+    /**
      * @brief Category to group {@see ConsoleArgument} of the same module together and provide
      * a general description of that module in help texts.
      */
@@ -131,4 +219,4 @@ namespace PoseEstimation
     };
 }
 
-#endif // CONSOLEARGUMENT_H
+#endif // PARAMETER_H

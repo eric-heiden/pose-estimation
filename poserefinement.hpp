@@ -3,6 +3,7 @@
 
 #include <Eigen/Geometry>
 
+#include "pipelinemodule.hpp"
 #include "types.h"
 #include "pointcloud.h"
 
@@ -12,9 +13,12 @@ namespace PoseEstimation
      * @brief Abstract module for registering two point clouds.
      */
     template<typename PointT>
-    class PoseRefiner
+    class PoseRefiner : public PipelineModule
     {
     public:
+        PoseRefiner() : PipelineModule(PipelineModuleType::PoseRefiner)
+        {}
+
         /**
          * @brief Align the source point cloud to the target point cloud.
          * @param source Point cloud to be aligned.

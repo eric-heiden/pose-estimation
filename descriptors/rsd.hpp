@@ -25,11 +25,12 @@ namespace PoseEstimation
         }
 
         virtual void describe(PC<PointT> &pc,
-                             const typename pcl::PointCloud<PointT>::Ptr &,
+                             const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &normals,
                              pcl::PointCloud<DescriptorType>::Ptr &features)
         {
-            _rsd.setInputCloud(pc.cloud());
-            _rsd.setInputNormals(pc.normals());
+            _rsd.setInputCloud(keypoints);
+            _rsd.setInputNormals(normals);
             _rsd.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
             _rsd.setPlaneRadius(pc.resolution() * planeRadius.value<float>());
             _rsd.setSaveHistograms(saveHistograms.value<bool>());

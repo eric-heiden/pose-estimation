@@ -3,15 +3,19 @@
 
 #include <pcl/correspondence.h>
 
+#include "pipelinemodule.hpp"
 #include "types.h"
 #include "pointcloud.h"
 
 namespace PoseEstimation
 {
     template<typename DescriptorT>
-    class FeatureMatcher
+    class FeatureMatcher : public PipelineModule
     {
     public:
+        FeatureMatcher() : PipelineModule(PipelineModuleType::FeatureMatcher)
+        {}
+
         /**
          * @brief Finds correspondences between descriptors of the source point cloud
          * and the target.

@@ -3,6 +3,7 @@
 #include <pcl/console/parse.h>
 
 #include "logger.h"
+#include "defaults.h"
 #include "parameter.h"
 #include "pointcloud.h"
 #include "visualizer.h"
@@ -57,8 +58,11 @@ int main(int argc, char **argv)
     // move target cloud to the right to visualize source & target side by side
     target.translate(1, 0, 0);
 
+    Downsampler<PointType> *dw = new VoxelGridDownsampler<PointType>();
+
     // actual pose estimation pipeline
-    Pipeline::process(source, target);
+    Pipeline<DescriptorType> p;
+    p.process(source, target);
 
     Visualizer::visualize(source);
     Visualizer::visualize(target);

@@ -38,8 +38,8 @@ namespace PoseEstimation
                 }
 
                 // find the single closest descriptor
-                std::vector<int> nn_idx(1); // indices of nearest neighbors
-                std::vector<float> nn_dist(1); // distances of nearest neighbors
+                std::vector<int> nn_idx(1);     // indices of nearest neighbors
+                std::vector<float> nn_dist(1);  // distances of nearest neighbors
                 int found_neighs = match_search.nearestKSearch(source_descriptors->at(i), 1, nn_idx, nn_dist);
                 for (size_t j = 0; j < found_neighs; ++j)
                 {
@@ -56,11 +56,15 @@ namespace PoseEstimation
             }
 
             if (skipped > 0)
+            {
                 Logger::warning(boost::format("Skipped %d of %d source cloud descriptors because they were invalid.")
-                              % skipped % source_descriptors->size());
+                                % skipped % source_descriptors->size());
+            }
 
             if (correspondences->empty())
-                Logger::error(boost::format("No correspondences between source and target descriptors were found."));
+            {
+                Logger::error("No correspondences between source and target descriptors were found.");
+            }
 
             std::sort(correspondences->begin(), correspondences->end(), _compareCorrespondences);
 

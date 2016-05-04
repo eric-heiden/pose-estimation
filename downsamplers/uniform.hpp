@@ -11,7 +11,7 @@
 namespace PoseEstimation
 {
     template<typename PointT>
-    class UniformDownsampler : Downsampler<PointT>
+    class UniformDownsampler : public Downsampler<PointT>
     {
     public:
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const

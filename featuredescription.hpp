@@ -1,21 +1,26 @@
-#ifndef FeatureExtraction_H
-#define FeatureExtraction_H
+#ifndef FeatureDescription_H
+#define FeatureDescription_H
 
 #include <pcl/point_cloud.h>
 
+#include "pipelinemodule.hpp"
 #include "types.h"
 #include "pointcloud.h"
 
 namespace PoseEstimation
 {
     template<typename PointT, typename DescriptorT>
-    class FeatureDescriptor
+    class FeatureDescriptor : public PipelineModule
     {
     public:
+        FeatureDescriptor() : PipelineModule(PipelineModuleType::FeatureDescriptor)
+        {}
+
         virtual void describe(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
+                              const PclNormalCloud::Ptr &normals,
                               typename pcl::PointCloud<DescriptorT>::Ptr &features) = 0;
     };
 }
 
-#endif // FeatureExtraction_H
+#endif // FeatureDescription_H
