@@ -1,5 +1,4 @@
-#ifndef DEFAULTS_H
-#define DEFAULTS_H
+#pragma once
 
 #include <memory>
 
@@ -35,5 +34,3 @@ namespace PoseEstimation
 
     ///TODO implement logic to change defaults via {@see ConsoleArgument}s.
 }
-
-#endif // DEFAULTS_H

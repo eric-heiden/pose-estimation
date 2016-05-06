@@ -1,5 +1,4 @@
-#ifndef VoxelGridDownsampling_H
-#define VoxelGridDownsampling_H
+#pragma once
 
 #include <pcl/filters/approximate_voxel_grid.h>
 
@@ -14,6 +13,11 @@ namespace PoseEstimation
     class VoxelGridDownsampler : public Downsampler<PointT>
     {
     public:
+        VoxelGridDownsampler() : Downsampler<PointT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const
         {
             pcl::ApproximateVoxelGrid<PointT> approximate_voxel_filter;
@@ -31,7 +35,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory VoxelGridDownsampler<PointT>::argumentCategory(
-                "voxelgrid", "Voxel grid downsampling");
+                "voxelgrid", "Voxel grid downsampling",
+                PipelineModuleType::Downsampler);
 
     template<typename PointT>
     Parameter VoxelGridDownsampler<PointT>::voxelSize = Parameter(
@@ -40,5 +45,3 @@ namespace PoseEstimation
                 3.0f,
                 "Leaf size of the voxel grid");
 }
-
-#endif // VoxelGridDownsampling_H

@@ -1,5 +1,4 @@
-#ifndef NDT_H
-#define NDT_H
+#pragma once
 
 #include <pcl/registration/ndt.h>
 
@@ -16,6 +15,11 @@ namespace PoseEstimation
     class NDTPoseRefiner : PoseRefiner<PointT>
     {
     public:
+        NDTPoseRefiner() : PoseRefiner<PointT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual bool refine(const PC<PointT> &source, const PC<PointT> &target,
                             PC<PointT> &out, Eigen::Matrix4f &transformation)
         {
@@ -43,45 +47,44 @@ namespace PoseEstimation
             return ndt.hasConverged();
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument stepSize;
-        static ConsoleArgument resolution;
-        static ConsoleArgument maxIterations;
-        static ConsoleArgument transformationEpsilon;
+        static Parameter stepSize;
+        static Parameter resolution;
+        static Parameter maxIterations;
+        static Parameter transformationEpsilon;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory NDTPoseRefiner<PointT>::argumentCategory(
-                "ndt", "Pose refinement using Normal Distributions Transform");
+    ParameterCategory NDTPoseRefiner<PointT>::argumentCategory(
+                "ndt", "Pose refinement using Normal Distributions Transform",
+                PipelineModuleType::PoseRefiner);
 
     template<typename PointT>
-    ConsoleArgument NDTPoseRefiner<PointT>::stepSize = ConsoleArgument(
+    Parameter NDTPoseRefiner<PointT>::stepSize = Parameter(
                 "ndt",
                 "step",
                 0.05f,
                 "Maximum step size for More-Thuente line search");
 
     template<typename PointT>
-    ConsoleArgument NDTPoseRefiner<PointT>::resolution = ConsoleArgument(
+    Parameter NDTPoseRefiner<PointT>::resolution = Parameter(
                 "ndt",
                 "res",
                 0.01f,
                 "Resolution of NDT grid structure (VoxelGridCovariance)");
 
     template<typename PointT>
-    ConsoleArgument NDTPoseRefiner<PointT>::maxIterations = ConsoleArgument(
+    Parameter NDTPoseRefiner<PointT>::maxIterations = Parameter(
                 "ndt",
                 "iter",
                 2,
                 "Maximum number of iterations");
 
     template<typename PointT>
-    ConsoleArgument NDTPoseRefiner<PointT>::transformationEpsilon = ConsoleArgument(
+    Parameter NDTPoseRefiner<PointT>::transformationEpsilon = Parameter(
                 "ndt",
                 "trans_eps",
                 0.0001f,
                 "Minimum allowable difference between two consecutive transformations");
 }
-
-#endif // NDT_H

@@ -1,5 +1,4 @@
-#ifndef PARAMETER_H
-#define PARAMETER_H
+#pragma once
 
 #include <map>
 #include <vector>
@@ -11,15 +10,14 @@
 
 #include <pcl/console/parse.h>
 
+#include "pipelinemodule.hpp"
+
 namespace PoseEstimation
 {
-    class ParameterCategory;
-    class EnumParameter;
-
     /**
      * @brief Abstracts an element in a set of discrete values.
      */
-    class Enum //TODO: Make generic? Now only string values are supported.
+    class Enum //TODO: Make generic? Now only string values ("names") are supported.
     {
         friend class EnumParameter;
     public:
@@ -134,13 +132,17 @@ namespace PoseEstimation
         std::string _name;
         std::string _description;
         std::string _category;
-        std::string _parseName() const;
         SupportedValue _value;
-        virtual void _display();
+
+        std::string _parseName() const;
+        virtual void _display(int indent = 0);
+        static std::string _type_name(const SupportedValue &v);
+
         static std::map<std::string, Parameter*> _allArgs;
         static std::map<std::string, std::vector<Parameter*> > _categorized;
         static std::map<std::string, std::string> _categories;
         static std::map<std::string, std::string> _unparsed;
+        static std::map<PipelineModuleType::Type, std::vector<std::string> > _modules;
 
         template <typename T>
         inline int _parse_helper(int argc, char *argv[])
@@ -157,7 +159,8 @@ namespace PoseEstimation
         }
 
         int _parse(int argc, char *argv[]);
-        static void _defineCategory(const std::string &name, const std::string &description = "");
+        static void _defineCategory(const std::string &name, const std::string &description,
+                                    PipelineModuleType::Type moduleType);
     };
 
     /**
@@ -170,6 +173,7 @@ namespace PoseEstimation
                       const std::string &name,
                       Enum &value,
                       const std::string &description = "");
+
         EnumParameter(const std::string &category,
                       const std::string &name,
                       std::initializer_list<std::string> value,
@@ -179,30 +183,19 @@ namespace PoseEstimation
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline void setValue(const Enum &value)
-        {
-            _value = value;
-        }
+        virtual inline void setValue(const Enum &value);
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline void setValue(const std::initializer_list<std::string> &value)
-        {
-            _value = Enum::define(value);
-        }
+        virtual inline void setValue(const std::initializer_list<std::string> &value);
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline void setValue(const std::string &value)
-        {
-            int id;
-            if ((boost::get<Enum>(_value)).get(value, id))
-                (boost::get<Enum>(_value)).value = id;
-        }
+        virtual inline void setValue(const std::string &value);
 
     private:
         virtual void _display();
@@ -215,8 +208,18 @@ namespace PoseEstimation
     class ParameterCategory
     {
     public:
-        ParameterCategory(const std::string &name, const std::string &description = "");
+        ParameterCategory(const std::string &name, const std::string &description,
+                          PipelineModuleType::Type moduleType = PipelineModuleType::Miscellaneous);
+
+        /**
+         * @brief Helper method to enforce static initialization and prevent the linker from
+         * removing parameter category definitions.
+         */
+        void define();
+
+    private:
+        std::string _name;
+        std::string _description;
+        PipelineModuleType::Type _moduleType;
     };
 }
-
-#endif // PARAMETER_H

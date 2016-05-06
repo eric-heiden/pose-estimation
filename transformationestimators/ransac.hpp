@@ -1,5 +1,4 @@
-#ifndef RANSACTransformationEstimation_H
-#define RANSACTransformationEstimation_H
+#pragma once
 
 #include <pcl/registration/sample_consensus_prerejective.h>
 
@@ -16,6 +15,11 @@ namespace PoseEstimation
     class RANSACTransformationEstimator : public TransformationEstimator<PointT, DescriptorT>
     {
     public:
+        RANSACTransformationEstimator() : TransformationEstimator<PointT, DescriptorT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual bool estimate(PC<PointT> &source,
                               PC<PointT> &,
                               const typename pcl::PointCloud<PointT>::Ptr &source_keypoints,
@@ -50,63 +54,63 @@ namespace PoseEstimation
             return _align.hasConverged();
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument inlierFraction;
-        static ConsoleArgument similarityThreshold;
-        static ConsoleArgument correspondenceThreshold;
-        static ConsoleArgument nearestFeatures;
-        static ConsoleArgument maxIterations;
-        static ConsoleArgument samples;
+        static Parameter inlierFraction;
+        static Parameter similarityThreshold;
+        static Parameter correspondenceThreshold;
+        static Parameter nearestFeatures;
+        static Parameter maxIterations;
+        static Parameter samples;
+
     private:
         pcl::SampleConsensusPrerejective<PointT, PointT, DescriptorT> _align;
     };
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgumentCategory RANSACTransformationEstimator<PointT, DescriptorT>::argumentCategory(
-                "ransac", "Transformation estimation using prerejective RANSAC");
+    ParameterCategory RANSACTransformationEstimator<PointT, DescriptorT>::argumentCategory(
+                "ransac", "Transformation estimation using prerejective RANSAC",
+                PipelineModuleType::TransformationEstimator);
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument RANSACTransformationEstimator<PointT, DescriptorT>::maxIterations = ConsoleArgument(
+    Parameter RANSACTransformationEstimator<PointT, DescriptorT>::maxIterations = Parameter(
                 "ransac",
                 "iter",
                 50000,
                 "Maximum number of iterations");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument RANSACTransformationEstimator<PointT, DescriptorT>::samples = ConsoleArgument(
+    Parameter RANSACTransformationEstimator<PointT, DescriptorT>::samples = Parameter(
                 "ransac",
                 "samples",
                 3,
                 "Number of points to sample for generating/prerejecting a pose");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument RANSACTransformationEstimator<PointT, DescriptorT>::nearestFeatures = ConsoleArgument(
+    Parameter RANSACTransformationEstimator<PointT, DescriptorT>::nearestFeatures = Parameter(
                 "ransac",
                 "features",
                 5,
                 "Number of nearest features to use");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument RANSACTransformationEstimator<PointT, DescriptorT>::similarityThreshold = ConsoleArgument(
+    Parameter RANSACTransformationEstimator<PointT, DescriptorT>::similarityThreshold = Parameter(
                 "ransac",
                 "sim_thresh",
                 0.9f,
                 "Polygonal edge length similarity threshold");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument RANSACTransformationEstimator<PointT, DescriptorT>::correspondenceThreshold = ConsoleArgument(
+    Parameter RANSACTransformationEstimator<PointT, DescriptorT>::correspondenceThreshold = Parameter(
                 "ransac",
                 "corr_thresh",
                 2.5f,
                 "Maximum correspondence distance for inlier consideration");
 
     template<typename PointT, typename DescriptorT>
-    ConsoleArgument RANSACTransformationEstimator<PointT, DescriptorT>::inlierFraction = ConsoleArgument(
+    Parameter RANSACTransformationEstimator<PointT, DescriptorT>::inlierFraction = Parameter(
                 "ransac",
                 "hyp_thresh",
                 0.25f,
                 "Required inlier fraction for accepting a pose hypothesis");
 }
-
-#endif // RANSACTransformationEstimation_H

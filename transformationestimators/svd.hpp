@@ -1,5 +1,4 @@
-#ifndef SVD_H
-#define SVD_H
+#pragma once
 
 #include <pcl/registration/transformation_estimation_svd.h>
 
@@ -39,5 +38,3 @@ namespace PoseEstimation
         _SVDEstimator _transformation_estimation;
     };
 }
-
-#endif // SVD_H

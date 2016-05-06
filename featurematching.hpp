@@ -1,5 +1,4 @@
-#ifndef FeatureMatching_H
-#define FeatureMatching_H
+#pragma once
 
 #include <pcl/correspondence.h>
 
@@ -30,5 +29,3 @@ namespace PoseEstimation
                            pcl::CorrespondencesPtr &correspondences) = 0;
     };
 }
-
-#endif // FeatureMatching_H

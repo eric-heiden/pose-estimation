@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     Parameter::parseAll(argc, argv);
 
     Parameter::saveAll();
+    Parameter::loadAll();
 
     if (pcl::console::find_switch(argc, argv, "-h"))
         showHelp(argv[0]);
@@ -58,10 +59,9 @@ int main(int argc, char **argv)
     // move target cloud to the right to visualize source & target side by side
     target.translate(1, 0, 0);
 
-    Downsampler<PointType> *dw = new VoxelGridDownsampler<PointType>();
-
     // actual pose estimation pipeline
     Pipeline<DescriptorType> p;
+    p.useModule(PipelineModuleType::Downsampler, false);
     p.process(source, target);
 
     Visualizer::visualize(source);

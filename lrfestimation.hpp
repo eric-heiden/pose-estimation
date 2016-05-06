@@ -1,5 +1,4 @@
-#ifndef LocalReferenceFrameEstimator_H
-#define LocalReferenceFrameEstimator_H
+#pragma once
 
 #include "pipelinemodule.hpp"
 #include "types.h"
@@ -16,5 +15,3 @@ namespace PoseEstimation
                               pcl::PointCloud<RFType>::Ptr &lrf) = 0;
     };
 }
-
-#endif // LocalReferenceFrameEstimator_H

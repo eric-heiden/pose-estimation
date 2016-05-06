@@ -1,5 +1,6 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#pragma once
+
+//TODO to be removed...
 
 #include <cmath>
 
@@ -126,5 +127,3 @@ namespace PoseEstimation
         return out;
     }
 }
-
-#endif // UTILS_H_

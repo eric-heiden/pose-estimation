@@ -1,5 +1,4 @@
-#ifndef GC_H
-#define GC_H
+#pragma once
 
 #include <pcl/recognition/cg/geometric_consistency.h>
 
@@ -16,6 +15,11 @@ namespace PoseEstimation
     class GeometricConsistency : public TransformationEstimator<PointT, DescriptorT>
     {
     public:
+        GeometricConsistency() : TransformationEstimator<PointT, DescriptorT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual bool estimate(PC<PointT> &source,
                               PC<PointT> &,
                               const typename pcl::PointCloud<PointT>::Ptr &source_keypoints,
@@ -47,13 +51,15 @@ namespace PoseEstimation
 
         static Parameter resolution;
         static Parameter threshold;
+
     private:
         pcl::GeometricConsistencyGrouping<PointT, PointT> _cg;
     };
 
     template<typename PointT, typename DescriptorT>
     ParameterCategory GeometricConsistency<PointT, DescriptorT>::argumentCategory(
-            "cg", "Transformation estimation using Geometric Consistency (Correspondence Grouping)");
+            "cg", "Transformation estimation using Geometric Consistency (Correspondence Grouping)",
+            PipelineModuleType::TransformationEstimator);
 
     template<typename PointT, typename DescriptorT>
     Parameter GeometricConsistency<PointT, DescriptorT>::resolution = Parameter(
@@ -69,5 +75,3 @@ namespace PoseEstimation
             5.0f,
             "Minimum cluster size");
 }
-
-#endif // GC_H

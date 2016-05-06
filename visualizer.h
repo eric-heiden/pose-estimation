@@ -1,5 +1,4 @@
-#ifndef VISUALIZER_H
-#define VISUALIZER_H
+#pragma once
 
 #include <pcl/visualization/pcl_visualizer.h>
 
@@ -43,5 +42,3 @@ namespace PoseEstimation
         static std::string object_name();
     };
 }
-
-#endif // VISUALIZER_H

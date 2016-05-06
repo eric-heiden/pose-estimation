@@ -1,5 +1,4 @@
-#ifndef COLOR_H
-#define COLOR_H
+#pragma once
 
 #include <cstdlib>
 
@@ -65,5 +64,3 @@ namespace PoseEstimation
     const Color Color::GREEN(0, 1, 0);
     const Color Color::BLUE(0, 0, 1);
 }
-
-#endif // COLOR_H

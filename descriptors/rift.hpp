@@ -1,5 +1,4 @@
-#ifndef RIFT_H
-#define RIFT_H
+#pragma once
 
 #include <pcl/features/intensity_gradient.h>
 #include <pcl/features/rift.h>
@@ -31,8 +30,9 @@ namespace PoseEstimation
 
         typedef pcl::Histogram<(DistanceBins*GradientBins)> DescriptorType;
 
-        RIFTFeatureDescriptor()
+        RIFTFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
+            argumentCategory.define();
             _rift.setNrDistanceBins(DistanceBins);
             _rift.setNrGradientBins(GradientBins);
         }
@@ -91,7 +91,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory RIFTFeatureDescriptor<PointT>::argumentCategory(
-            "RIFT", "Feature description using Rotation Invariant Feature Transform (RIFT)");
+            "RIFT", "Feature description using Rotation Invariant Feature Transform (RIFT)",
+            PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
     Parameter RIFTFeatureDescriptor<PointT>::gradientRadius = Parameter(
@@ -105,5 +106,3 @@ namespace PoseEstimation
     Parameter RIFTFeatureDescriptor<PointT>::normalRadius = Parameter(
             "RIFT", "normal_nn", (float)20.0f, "Search radius for finding neighbors for normal estimation");
 }
-
-#endif // RIFT_H

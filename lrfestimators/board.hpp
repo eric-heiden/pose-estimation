@@ -1,5 +1,4 @@
-#ifndef BOARDLocalReferenceFrameEstimator_H
-#define BOARDLocalReferenceFrameEstimator_H
+#pragma once
 
 #include <pcl/features/board.h>
 
@@ -17,6 +16,11 @@ namespace PoseEstimation
     class BOARDLocalReferenceFrameEstimator : public LocalReferenceFrameEstimator<PointT>
     {
     public:
+        BOARDLocalReferenceFrameEstimator() : LocalReferenceFrameEstimator<PointT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual void estimate(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
                               pcl::PointCloud<RFType>::Ptr &lrf)
@@ -39,7 +43,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory BOARDLocalReferenceFrameEstimator<PointT>::argumentCategory(
-            "BOARD", "Local Reference Frame Estimation using BOrder Aware Repeatable Directions (BOARD)");
+            "BOARD", "Local Reference Frame Estimation using BOrder Aware Repeatable Directions (BOARD)",
+            PipelineModuleType::LocalReferenceFrameEstimator);
 
     template<typename PointT>
     Parameter BOARDLocalReferenceFrameEstimator<PointT>::searchRadius = Parameter(
@@ -49,5 +54,3 @@ namespace PoseEstimation
     Parameter BOARDLocalReferenceFrameEstimator<PointT>::findHoles = Parameter(
             "BOARD", "holes", true, "Search and account for holes in the margin of the support");
 }
-
-#endif // BOARDLocalReferenceFrameEstimator_H

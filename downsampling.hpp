@@ -1,5 +1,4 @@
-#ifndef Downsampling_H
-#define Downsampling_H
+#pragma once
 
 #include "pipelinemodule.hpp"
 #include "pointcloud.h"
@@ -19,5 +18,3 @@ namespace PoseEstimation
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const = 0;
     };
 }
-
-#endif // Downsampling_H

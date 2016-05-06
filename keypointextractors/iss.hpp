@@ -1,5 +1,4 @@
-#ifndef ISSKeypointExtraction_H
-#define ISSKeypointExtraction_H
+#pragma once
 
 #include <pcl/keypoints/iss_3d.h>
 
@@ -17,6 +16,11 @@ namespace PoseEstimation
     class ISSKeypointExtractor : public KeypointExtractor<PointT>
     {
     public:
+        ISSKeypointExtractor() : KeypointExtractor<PointT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual void extract(PC<PointT> &pc, typename pcl::PointCloud<PointT>::Ptr &keypoints)
         {
             _iss_detector.setNumberOfThreads(numberOfThreads.value<int>());
@@ -33,63 +37,63 @@ namespace PoseEstimation
             Logger::debug(boost::format("Extracted %d keypoints.") % keypoints->size());
         }
 
-        static ConsoleArgumentCategory argumentCategory;
+        static ParameterCategory argumentCategory;
 
-        static ConsoleArgument nonMaxRadius;
-        static ConsoleArgument salientRadius;
-        static ConsoleArgument threshold32;
-        static ConsoleArgument threshold21;
-        static ConsoleArgument minNeighbors;
-        static ConsoleArgument numberOfThreads;
+        static Parameter nonMaxRadius;
+        static Parameter salientRadius;
+        static Parameter threshold32;
+        static Parameter threshold21;
+        static Parameter minNeighbors;
+        static Parameter numberOfThreads;
 
     private:
         pcl::ISSKeypoint3D<PointT, PointT> _iss_detector;
     };
 
     template<typename PointT>
-    ConsoleArgumentCategory ISSKeypointExtractor<PointT>::argumentCategory("iss", "Keypoint extraction using Intrinsic Shape Signatures (ISS)");
+    ParameterCategory ISSKeypointExtractor<PointT>::argumentCategory(
+                "iss", "Keypoint extraction using Intrinsic Shape Signatures (ISS)",
+                PipelineModuleType::KeypointExtractor);
 
     template<typename PointT>
-    ConsoleArgument ISSKeypointExtractor<PointT>::nonMaxRadius = ConsoleArgument(
+    Parameter ISSKeypointExtractor<PointT>::nonMaxRadius = Parameter(
                 "iss",
                 "nonmax_r",
                 (float)8.0f,
                 "Non maxima suppression radius for ISS keypoint extraction");
 
     template<typename PointT>
-    ConsoleArgument ISSKeypointExtractor<PointT>::salientRadius = ConsoleArgument(
+    Parameter ISSKeypointExtractor<PointT>::salientRadius = Parameter(
                 "iss",
                 "salient_r",
                 (float)3.0f,
                 "Salient radius for ISS keypoint extraction");
 
     template<typename PointT>
-    ConsoleArgument ISSKeypointExtractor<PointT>::threshold32 = ConsoleArgument(
+    Parameter ISSKeypointExtractor<PointT>::threshold32 = Parameter(
                 "iss",
                 "thresh32",
                 (float)0.975f,
                 "ISS Threshold 32");
 
     template<typename PointT>
-    ConsoleArgument ISSKeypointExtractor<PointT>::threshold21 = ConsoleArgument(
+    Parameter ISSKeypointExtractor<PointT>::threshold21 = Parameter(
                 "iss",
                 "thresh21",
                 (float)0.975f,
                 "ISS Threshold 21");
 
     template<typename PointT>
-    ConsoleArgument ISSKeypointExtractor<PointT>::minNeighbors = ConsoleArgument(
+    Parameter ISSKeypointExtractor<PointT>::minNeighbors = Parameter(
                 "iss",
                 "nn",
                 (float)3.0f,
                 "Minimum number of neighbors to consider for ISS keypoint extraction");
 
     template<typename PointT>
-    ConsoleArgument ISSKeypointExtractor<PointT>::numberOfThreads = ConsoleArgument(
+    Parameter ISSKeypointExtractor<PointT>::numberOfThreads = Parameter(
                 "iss",
                 "threads",
                 (int)4,
                 "Number of threads to use for ISS keypoint extraction");
 }
-
-#endif // ISSKeypointExtraction_H

@@ -1,5 +1,4 @@
-#ifndef SpinImage_H
-#define SpinImage_H
+#pragma once
 
 #include <pcl/features/spin_image.h>
 
@@ -24,8 +23,10 @@ namespace PoseEstimation
          */
         static const int Resolution = 8;
 
-        SpinImageFeatureDescriptor()
+        SpinImageFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
+            argumentCategory.define();
+
             _si.setImageWidth(Resolution);
         }
 
@@ -55,11 +56,10 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory SpinImageFeatureDescriptor<PointT>::argumentCategory(
-            "SI", "Feature Description using Spin Images (SI)");
+            "SI", "Feature Description using Spin Images (SI)",
+            PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
     Parameter SpinImageFeatureDescriptor<PointT>::searchRadius = Parameter(
             "SI", "search_r", (float)5.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
 }
-
-#endif // SpinImage_H

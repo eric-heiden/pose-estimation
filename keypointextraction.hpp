@@ -1,5 +1,4 @@
-#ifndef KeypointExtraction_H
-#define KeypointExtraction_H
+#pragma once
 
 #include <pcl/point_cloud.h>
 
@@ -21,5 +20,3 @@ namespace PoseEstimation
         virtual void extract(PC<PointT> &pc, typename pcl::PointCloud<PointT>::Ptr &keypoints) = 0;
     };
 }
-
-#endif // KeypointExtraction_H

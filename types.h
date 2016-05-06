@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -16,5 +15,3 @@ namespace PoseEstimation
     typedef pcl::PointCloud<PointType> PclPointCloud;
     typedef pcl::PointCloud<NormalType> PclNormalCloud;
 }
-
-#endif // TYPES_H

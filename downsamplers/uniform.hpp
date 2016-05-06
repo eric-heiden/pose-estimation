@@ -1,5 +1,4 @@
-#ifndef UniformDownsampling_H
-#define UniformDownsampling_H
+#pragma once
 
 #include <pcl/filters/uniform_sampling.h>
 
@@ -14,6 +13,11 @@ namespace PoseEstimation
     class UniformDownsampler : public Downsampler<PointT>
     {
     public:
+        UniformDownsampler() : Downsampler<PointT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const
         {
             pcl::UniformSampling<PointT> uniform_sampling;
@@ -30,7 +34,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory UniformDownsampler<PointT>::argumentCategory(
-                "uniformdown", "Uniform downsampling");
+                "uniformdown", "Uniform downsampling",
+                PipelineModuleType::Downsampler);
 
     template<typename PointT>
     Parameter UniformDownsampler<PointT>::sampleSize = Parameter(
@@ -39,5 +44,3 @@ namespace PoseEstimation
                 10.0f,
                 "Sample size");
 }
-
-#endif // UniformDownsampling_H

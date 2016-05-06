@@ -1,5 +1,4 @@
-#ifndef USC_H
-#define USC_H
+#pragma once
 
 #include <pcl/features/usc.h>
 
@@ -17,6 +16,11 @@ namespace PoseEstimation
     {
     public:
         typedef pcl::UniqueShapeContext1960 DescriptorType;
+
+        USCFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
+        {
+            argumentCategory.define();
+        }
 
         virtual void describe(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
@@ -47,7 +51,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory USCFeatureDescriptor<PointT>::argumentCategory(
-            "USC", "Feature description using Unique Shape Context (USC)");
+            "USC", "Feature description using Unique Shape Context (USC)",
+            PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
     Parameter USCFeatureDescriptor<PointT>::searchRadius = Parameter(
@@ -65,5 +70,3 @@ namespace PoseEstimation
     Parameter USCFeatureDescriptor<PointT>::densityRadius = Parameter(
             "USC", "density_r", (float)10.0f, "Points within this radius are used to calculate the local point density");
 }
-
-#endif // USC_H

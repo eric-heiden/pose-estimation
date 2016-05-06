@@ -1,6 +1,4 @@
-#ifndef PoseRefinement_H
-#define PoseRefinement_H
-
+#pragma once
 #include <Eigen/Geometry>
 
 #include "pipelinemodule.hpp"
@@ -31,5 +29,3 @@ namespace PoseEstimation
                                   PC<PointT> &out, Eigen::Matrix4f &transformation) = 0;
     };
 }
-
-#endif // PoseRefinement_H

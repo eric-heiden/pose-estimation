@@ -1,5 +1,4 @@
-#ifndef UniformKeypointExtraction_H
-#define UniformKeypointExtraction_H
+#pragma once
 
 #include <pcl/filters/uniform_sampling.h>
 
@@ -18,6 +17,11 @@ namespace PoseEstimation
     class UniformKeypointExtractor : public KeypointExtractor<PointT>
     {
     public:
+        UniformKeypointExtractor() : KeypointExtractor<PointT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual void extract(PC<PointT> &pc, typename pcl::PointCloud<PointT>::Ptr &keypoints)
         {
             _uniform_sampling.setInputCloud(pc.cloud());
@@ -36,14 +40,13 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory UniformKeypointExtractor<PointT>::argumentCategory(
-                "uniform", "Keypoint extraction using Uniform Sampling");
+                "uniform", "Keypoint extraction using Uniform Sampling",
+                PipelineModuleType::KeypointExtractor);
 
     template<typename PointT>
     Parameter UniformKeypointExtractor<PointT>::searchRadius = Parameter(
                 "uniform",
                 "r",
-                5.0f,
+                15.0f,
                 "Search radius for the uniform keypoint extraction");
 }
-
-#endif // UniformKeypointExtraction_H

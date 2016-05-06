@@ -1,5 +1,4 @@
-#ifndef SHOT_H
-#define SHOT_H
+#pragma once
 
 #include <pcl/features/shot_omp.h>
 
@@ -17,8 +16,10 @@ namespace PoseEstimation
     public:
         typedef pcl::SHOT1344 DescriptorType;
 
-        SHOTFeatureDescriptor()
+        SHOTFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
+            argumentCategory.define();
+
             //TODO: initialize in describe(...) to make useColor runtime variable?
             _shot = new pcl::SHOTColorEstimationOMP
                     <PointT, NormalType, DescriptorType>(true, useColor.value<bool>());
@@ -67,7 +68,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory SHOTFeatureDescriptor<PointT>::argumentCategory(
-            "SHOT", "Feature Extraction using Signature of Histograms of OrienTations (SHOT)");
+            "SHOT", "Feature Extraction using Signature of Histograms of OrienTations (SHOT)",
+            PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::useColor = Parameter(
@@ -81,5 +83,3 @@ namespace PoseEstimation
     Parameter SHOTFeatureDescriptor<PointT>::lrfRadius = Parameter(
             "SHOT", "LRF_r", (float)27.5f, "Local Reference Frame (LRF) radius of SHOT descriptor");
 }
-
-#endif // SHOT_H

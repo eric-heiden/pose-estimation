@@ -1,5 +1,4 @@
-#ifndef Hough3d_H
-#define Hough3d_H
+#pragma once
 
 #include <pcl/recognition/cg/hough_3d.h>
 
@@ -16,6 +15,11 @@ namespace PoseEstimation
     class HoughVoting : public TransformationEstimator<PointT, DescriptorT>
     {
     public:
+        HoughVoting() : TransformationEstimator<PointT, DescriptorT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual bool estimate(PC<PointT> &source,
                               PC<PointT> &target,
                               const typename pcl::PointCloud<PointT>::Ptr &source_keypoints,
@@ -63,7 +67,8 @@ namespace PoseEstimation
 
     template<typename PointT, typename DescriptorT, typename LRFEstimatorT>
     ParameterCategory HoughVoting<PointT, DescriptorT, LRFEstimatorT>::argumentCategory(
-            "hough", "Transformation estimation using Hough 3D Voting (Correspondence Grouping)");
+            "hough", "Transformation estimation using Hough 3D Voting (Correspondence Grouping)",
+            PipelineModuleType::TransformationEstimator);
 
     template<typename PointT, typename DescriptorT, typename LRFEstimatorT>
     Parameter HoughVoting<PointT, DescriptorT, LRFEstimatorT>::binSize = Parameter(
@@ -79,5 +84,3 @@ namespace PoseEstimation
             5.0f,
             "Minimum number of votes in the Hough space needed to infer the presence of a model instance into the scene cloud");
 }
-
-#endif // Hough3d_H

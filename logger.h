@@ -1,5 +1,4 @@
-#ifndef Debugger_H
-#define Debugger_H
+#pragma once
 
 #include <boost/format.hpp>
 
@@ -53,5 +52,3 @@ namespace PoseEstimation
     #   define ASSERT(condition, message) do { } while (false)
     #endif
 }
-
-#endif // Debugger_H

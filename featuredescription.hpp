@@ -1,5 +1,4 @@
-#ifndef FeatureDescription_H
-#define FeatureDescription_H
+#pragma once
 
 #include <pcl/point_cloud.h>
 
@@ -22,5 +21,3 @@ namespace PoseEstimation
                               typename pcl::PointCloud<DescriptorT>::Ptr &features) = 0;
     };
 }
-
-#endif // FeatureDescription_H

@@ -1,5 +1,4 @@
-#ifndef RSD_H
-#define RSD_H
+#pragma once
 
 #include <pcl/features/rsd.h>
 
@@ -18,8 +17,10 @@ namespace PoseEstimation
     public:
         typedef pcl::PrincipalRadiiRSD DescriptorType;
 
-        RSDFeatureDescriptor()
+        RSDFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
+            argumentCategory.define();
+
             typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
             _rsd.setSearchMethod(kdtree);
         }
@@ -52,7 +53,8 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory RSDFeatureDescriptor<PointT>::argumentCategory(
-            "RSD", "Feature Description using Radius-based Surface Descriptor (RSD)");
+            "RSD", "Feature Description using Radius-based Surface Descriptor (RSD)",
+            PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
     Parameter RSDFeatureDescriptor<PointT>::saveHistograms = Parameter(
@@ -66,5 +68,3 @@ namespace PoseEstimation
     Parameter RSDFeatureDescriptor<PointT>::planeRadius = Parameter(
             "RSD", "plane_r", (float)30.0f, "Maximum radius, above which everything can be considered planar (should be 10-20 times RSD_search_r)");
 }
-
-#endif // RSD_H

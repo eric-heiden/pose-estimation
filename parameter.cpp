@@ -1,7 +1,6 @@
 #include <fstream>
 
 #include <boost/algorithm/string/join.hpp>
-
 #include <pcl/io/pcd_io.h>
 #include <pcl/console/parse.h>
 
@@ -16,21 +15,26 @@ using Json = nlohmann::json;
 std::map<std::string, Parameter*> Parameter::_allArgs = std::map<std::string, Parameter*>();
 std::map<std::string, std::vector<Parameter*> > Parameter::_categorized = std::map<std::string, std::vector<Parameter*> >();
 std::map<std::string, std::string> Parameter::_categories = std::map<std::string, std::string>();
+std::map<PipelineModuleType::Type, std::vector<std::string> > Parameter::_modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
 
-Parameter::Parameter(const std::string &category, const std::string &name, const SupportedValue &value, const std::string &description)
+Parameter::Parameter(const std::string &category, const std::string &name,
+                     const SupportedValue &value, const std::string &description)
 {
     _name = name;
     _description = description;
     _category = category;
     _value = value;
     std::string id = _parseName();
+
     if (_allArgs.find(id) != _allArgs.end())
     {
         _allArgs[id]->_value = value;
-        Logger::debug(boost::format("Value of argument \"%s\" has been updated.") % name);
+        Logger::debug(boost::format("Value of argument \"%1%\" has been updated to [%2%] %3%.") % id % _type_name(value) % value);
+        return;
     }
     else
         _allArgs[id] = this;
+
     if (_categories.find(category) == _categories.end())
     {
         _categories[category] = "";
@@ -59,7 +63,7 @@ std::string Parameter::_parseName() const
     return (boost::format("--%s_%s") % _category % _name).str();
 }
 
-std::string type_name(PoseEstimation::SupportedValue &v)
+std::string Parameter::_type_name(const PoseEstimation::SupportedValue &v)
 {
     if (v.type() == typeid(int))
         return "int";
@@ -74,11 +78,14 @@ std::string type_name(PoseEstimation::SupportedValue &v)
     return "unknown";
 }
 
-void Parameter::_display()
+void Parameter::_display(int indent)
 {
+    while (indent-- > 0)
+        std::cout << '\t';
+
     std::cout << std::left << std::setw(26) << std::setfill(' ') << _parseName()
               << std::left << std::setw(58) << std::setfill(' ') << description()
-              << " ([" << type_name(_value) << "] "
+              << " ([" << _type_name(_value) << "] "
               <<  boost::lexical_cast<std::string>(_value) << ")" << std::endl;
 }
 
@@ -88,15 +95,21 @@ void Parameter::_display()
  */
 void Parameter::displayAll()
 {
-    for (auto &&vit : _categorized)
+    for (auto &&mit : _modules)
     {
-        std::cout << vit.first;
-        if (!_categories[vit.first].empty())
-            std::cout << " (" << _categories[vit.first] << ")";
-        std::cout << std::endl;
-        for (Parameter *arg : vit.second)
+        std::string moduleName = PipelineModuleType::str(mit.first);
+        std::cout << moduleName << std::endl;
+
+        for (std::string &category : mit.second)
         {
-            arg->_display();
+            std::cout << '\t' << category;
+            if (!_categories[category].empty())
+                std::cout << " (" << _categories[category] << ")";
+            std::cout << std::endl;
+            for (Parameter *arg : _categorized[category])
+            {
+                arg->_display(2);
+            }
         }
     }
 }
@@ -131,20 +144,31 @@ void _set_json_arg_value(Json &jarg, SupportedValue &value)
 bool Parameter::saveAll(const std::string &filename)
 {
     Json j;
-    for (auto &&vit : _categorized)
+    j["configuration"] = std::vector<Json>();
+    for (auto &&mit : _modules)
     {
-        // create category
-        std::string category = vit.first;
-        j[category]["description"] = _categories[category];
-        j[category]["parameters"] = std::vector<Json>();
-        for (Parameter *arg : vit.second)
+        std::string moduleName = PipelineModuleType::str(mit.first);
+        Json mj;
+        mj["module"] = moduleName;
+        mj["categories"] = std::vector<Json>();
+        for (std::string &category : mit.second)
         {
-            Json jarg;
-            jarg["name"] = arg->name();
-            _set_json_arg_value(jarg, arg->_value);
-            jarg["description"] = arg->description();
-            j[category]["parameters"].push_back(jarg);
+            // create category
+            Json cj;
+            cj["description"] = _categories[category];
+            cj["parameters"] = std::vector<Json>();
+            cj["name"] = category;
+            for (Parameter *arg : _categorized[category])
+            {
+                Json aj;
+                aj["name"] = arg->name();
+                _set_json_arg_value(aj, arg->_value);
+                aj["description"] = arg->description();
+                cj["parameters"].push_back(aj);
+            }
+            mj["categories"].push_back(cj);
         }
+        j["configuration"].push_back(mj);
     }
 
     std::ofstream fout(filename);
@@ -160,9 +184,52 @@ bool Parameter::saveAll(const std::string &filename)
     return true;
 }
 
+SupportedValue _json_to_value(Json j)
+{
+    if (j.is_boolean())
+        return (bool)j;
+    if (j.is_number_float())
+        return (float)j;
+    if (j.is_number_integer())
+        return (int)j;
+    return j.dump();
+}
+
 bool Parameter::loadAll(const std::string &filename)
 {
-    return false;
+    std::ifstream fin(filename);
+    if (!fin)
+    {
+        Logger::error(boost::format("Could not load parameters from \"%s\".") % filename);
+        return false;
+    }
+
+    Json j(fin);
+    if (j.empty())
+    {
+        Logger::warning(boost::format("Configuration file \"%s\" is empty.") % filename);
+        return true;
+    }
+
+    for (auto &module : j["configuration"])
+    {
+        Logger::debug(boost::format("Found module %s.") % module["module"]);
+        auto mtype = PipelineModuleType::parse(module["module"]);
+        for (auto &category : module["categories"])
+        {
+            // create category / module if it doesn't exist
+            _defineCategory(category["name"], category["description"], mtype);
+
+            for (auto &parameter : category["parameters"])
+            {
+                // constructor updates parameter if necessary
+                Parameter(category["name"], parameter["name"],
+                          _json_to_value(parameter["value"]), parameter["description"]);
+            }
+        }
+    }
+
+    Logger::log(boost::format("Configuration has been read successfully from \"%s\".") % filename);
 }
 
 int Parameter::_parse(int argc, char *argv[])
@@ -185,32 +252,68 @@ int Parameter::_parse(int argc, char *argv[])
     }
 }
 
-void Parameter::_defineCategory(const std::string &name, const std::string &description)
+void Parameter::_defineCategory(const std::string &name, const std::string &description,
+                                PipelineModuleType::Type moduleType)
 {
     _categories[name] = description;
     if (_categorized.find(name) == _categorized.end())
         _categorized[name] = std::vector<Parameter*>();
+    else
+    {
+        // category already exists
+        return;
+    }
+
+    if (_modules.find(moduleType) == _modules.end())
+        _modules[moduleType] = std::vector<std::string>();
+    _modules[moduleType].push_back(name);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ParameterCategory::ParameterCategory(const std::string &name, const std::string &description)
+ParameterCategory::ParameterCategory(const std::string &name, const std::string &description,
+                                     PipelineModuleType::Type moduleType)
+    : _name(name), _description(description), _moduleType(moduleType)
 {
-    Parameter::_defineCategory(name, description);
+    Parameter::_defineCategory(name, description, moduleType);
+}
+
+void ParameterCategory::define()
+{
+    Parameter::_defineCategory(_name, _description, _moduleType);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-EnumParameter::EnumParameter(const std::string &category, const std::string &name, std::initializer_list<std::string> value, const std::string &description)
+EnumParameter::EnumParameter(const std::string &category, const std::string &name,
+                             std::initializer_list<std::string> value, const std::string &description)
     : Parameter(category, name, Enum::define(value), description)
 {
 
 }
 
-EnumParameter::EnumParameter(const std::string &category, const std::string &name, Enum &value, const std::string &description)
+EnumParameter::EnumParameter(const std::string &category, const std::string &name,
+                             Enum &value, const std::string &description)
     : Parameter(category, name, value, description)
 {
 
+}
+
+void EnumParameter::setValue(const std::string &value)
+{
+    int id;
+    if ((boost::get<Enum>(_value)).get(value, id))
+        (boost::get<Enum>(_value)).value = id;
+}
+
+void EnumParameter::setValue(const std::initializer_list<std::string> &value)
+{
+    _value = Enum::define(value);
+}
+
+void EnumParameter::setValue(const Enum &value)
+{
+    _value = value;
 }
 
 void EnumParameter::_display()

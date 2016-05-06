@@ -1,5 +1,4 @@
-#ifndef KdTreeFeatureMatching_H
-#define KdTreeFeatureMatching_H
+#pragma once
 
 #include <pcl/correspondence.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -19,6 +18,11 @@ namespace PoseEstimation
     class KdTreeFeatureMatcher : public FeatureMatcher<DescriptorT>
     {
     public:
+        KdTreeFeatureMatcher() : FeatureMatcher<DescriptorT>()
+        {
+            argumentCategory.define();
+        }
+
         virtual void match(const typename pcl::PointCloud<DescriptorT>::Ptr &source_descriptors,
                            const typename pcl::PointCloud<DescriptorT>::Ptr &target_descriptors,
                            pcl::CorrespondencesPtr &correspondences)
@@ -90,7 +94,8 @@ namespace PoseEstimation
 
     template<typename DescriptorT>
     ParameterCategory KdTreeFeatureMatcher<DescriptorT>::argumentCategory(
-                "kd_match", "Kd-tree correspondence matching");
+                "kd_match", "Kd-tree correspondence matching",
+                PipelineModuleType::FeatureMatcher);
 
     template<typename DescriptorT>
     Parameter KdTreeFeatureMatcher<DescriptorT>::matchThreshold = Parameter(
@@ -99,5 +104,3 @@ namespace PoseEstimation
                 (float)0.15f,
                 "Top percentage of correspondence distances that are considered");
 }
-
-#endif // KdTreeFeatureMatching_H

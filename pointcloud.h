@@ -1,5 +1,4 @@
-#ifndef POINTCLOUD_H
-#define POINTCLOUD_H
+#pragma once
 
 #include <cmath>
 
@@ -26,6 +25,8 @@ namespace PoseEstimation
             _resolution = -1;
             _cloud = cloud;
             _normals = PclNormalCloud::Ptr(new PclNormalCloud);
+
+            argumentCategory.define();
         }
 
         /**
@@ -263,16 +264,14 @@ namespace PoseEstimation
         }
     };
 
-    typedef PC<PointType> PointCloud;
-    typedef PC<NormalType> NormalCloud;
-
     template<typename PointT>
     ParameterCategory PC<PointT>::argumentCategory(
-            "pc", "Point Cloud computations");
+            "pc", "Point Cloud computations", PipelineModuleType::Miscellaneous);
 
     template<typename PointT>
     Parameter PC<PointT>::normalEstimationRadius = Parameter(
             "pc", "normal_nn", (float)20.0f, "Search radius of nearest neighbor normal estimation");
-}
 
-#endif // POINTCLOUD_H
+    typedef PC<PointType> PointCloud;
+    typedef PC<NormalType> NormalCloud;
+}

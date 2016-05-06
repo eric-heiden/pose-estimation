@@ -1,5 +1,4 @@
-#ifndef Pipeline_H
-#define Pipeline_H
+#pragma once
 
 #include <memory>
 #include <map>
@@ -16,6 +15,24 @@
 
 namespace PoseEstimation
 {
+    /**
+     * @brief Performance statistics of the pose estimation pipeline.
+     */
+    struct PipelineStats
+    {
+        size_t sourceDownsampledPoints;
+        size_t targetDownsampledPoints;
+
+        size_t sourceKeypointsExtracted;
+        size_t targetKeypointsExtracted;
+
+        size_t correspondencesFound;
+        double averageCorrespondenceDistance;
+
+        bool transformationSuccessful;
+        std::vector<Eigen::Matrix4f> transformationInstances;
+    };
+
     /**
      * @brief The standard Pose Estimation Pipeline.
      * @details To estimate the absolute transformation of the source point cloud to the target,
@@ -38,6 +55,13 @@ namespace PoseEstimation
             _keypointExtractor = std::make_shared<DefaultKeypointExtractor>(DefaultKeypointExtractor());
             _transformationEstimator = std::make_shared<DefaultTransformationEstimator>(DefaultTransformationEstimator());
             _featureMatcher = std::make_shared<DefaultFeatureMatcher>(DefaultFeatureMatcher());
+
+            _usedModules[PipelineModuleType::Downsampler] = true;
+            _usedModules[PipelineModuleType::FeatureDescriptor] = true;
+            _usedModules[PipelineModuleType::FeatureMatcher] = true;
+            _usedModules[PipelineModuleType::KeypointExtractor] = true;
+            _usedModules[PipelineModuleType::PoseRefiner] = true;
+            _usedModules[PipelineModuleType::TransformationEstimator] = true;
         }
 
         std::shared_ptr<FeatureDescriptor<PointType, DescriptorT> >& featureDescriptor()
@@ -65,21 +89,44 @@ namespace PoseEstimation
             return _featureMatcher;
         }
 
-        void process(PointCloud &source, PointCloud &target) const
+        PipelineStats process(PointCloud &source, PointCloud &target) const
         {
             typedef typename pcl::PointCloud<DescriptorT> PclDescriptorCloud;
 
+            PipelineStats stats;
+
             // downsample
-            Logger::log("Downsampling...");
-            _downsampler->downsample(source, source);
-            _downsampler->downsample(target, target);
+            if (_usedModules.at(PipelineModuleType::Downsampler))
+            {
+                Logger::log("Downsampling...");
+                _downsampler->downsample(source, source);
+                _downsampler->downsample(target, target);
+            }
+
+            stats.sourceDownsampledPoints = source.size();
+            stats.targetDownsampledPoints = target.size();
 
             // keypoint extraction
-            Logger::log("Keypoint extraction...");
             PclPointCloud::Ptr source_keypoints(new PclPointCloud);
             PclPointCloud::Ptr target_keypoints(new PclPointCloud);
-            _keypointExtractor->extract(source, source_keypoints);
-            _keypointExtractor->extract(target, target_keypoints);
+            if (_usedModules.at(PipelineModuleType::KeypointExtractor))
+            {
+                Logger::log("Keypoint extraction...");
+                _keypointExtractor->extract(source, source_keypoints);
+                _keypointExtractor->extract(target, target_keypoints);
+            }
+            else
+            {
+                source_keypoints = PclPointCloud::Ptr(source.cloud());
+                target_keypoints = PclPointCloud::Ptr(target.cloud());
+            }
+
+            stats.sourceKeypointsExtracted = source_keypoints->size();
+            stats.targetKeypointsExtracted = target_keypoints->size();
+
+            Logger::log("Calculating normals at keypoints...");
+            PclNormalCloud::Ptr source_keypoint_normals = source.normals(source_keypoints);
+            PclNormalCloud::Ptr target_keypoint_normals = target.normals(target_keypoints);
 
             // visualize keypoints
             PointCloud skp(source_keypoints);
@@ -91,18 +138,14 @@ namespace PoseEstimation
             vo.setPointSize(5.0);
 
             // feature description
-
-            PclNormalCloud::Ptr source_keypoint_normals = source.normals(source_keypoints);
-            PclNormalCloud::Ptr target_keypoint_normals = target.normals(target_keypoints);
-
             Logger::log("Feature description...");
             typename PclDescriptorCloud::Ptr source_features(new PclDescriptorCloud);
             typename PclDescriptorCloud::Ptr target_features(new PclDescriptorCloud);
             Logger::debug("before describing...");
             _featureDescriptor->describe(source, source_keypoints, source_keypoint_normals, source_features);
-            Logger::debug(boost::format("Found %d features for source point cloud.") % source_features->size());
+            Logger::debug(boost::format("Computed %d features for source point cloud.") % source_features->size());
             _featureDescriptor->describe(target, target_keypoints, target_keypoint_normals, target_features);
-            Logger::debug(boost::format("Found %d features for target point cloud.") % target_features->size());
+            Logger::debug(boost::format("Computed %d features for target point cloud.") % target_features->size());
 
             // matching
             Logger::log("Feature matching...");
@@ -152,6 +195,8 @@ namespace PoseEstimation
 
             // pose refinement
             //TODO implement
+
+            return stats;
         }
 
         void useModule(PipelineModuleType::Type module, bool status)
@@ -170,5 +215,3 @@ namespace PoseEstimation
         std::map<PipelineModuleType::Type, bool> _usedModules;
     };
 }
-
-#endif // Pipeline_H

@@ -6197,7 +6197,7 @@ class basic_json
                         std::stringstream ss;
                         ss.imbue(std::locale(std::locale(), new DecimalSeparator));  // fix locale problems
                         ss << std::setprecision(std::numeric_limits<double>::digits10)
-                           << m_value.number_float;
+                           << std::fixed << m_value.number_float; // avoid int output (which makes parsing back to float impossible)
                         o << ss.str();
                     }
                 }

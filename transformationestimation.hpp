@@ -1,5 +1,4 @@
-#ifndef TransformationEstimation_H
-#define TransformationEstimation_H
+#pragma once
 
 #include <vector>
 #include <Eigen/Geometry>
@@ -48,5 +47,3 @@ namespace PoseEstimation
                               std::vector<Eigen::Matrix4f> &transformations) = 0;
     };
 }
-
-#endif // TransformationEstimation_H

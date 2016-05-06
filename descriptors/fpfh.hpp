@@ -1,5 +1,4 @@
-#ifndef FPFH_H
-#define FPFH_H
+#pragma once
 
 #include <pcl/features/fpfh.h>
 
@@ -17,6 +16,11 @@ namespace PoseEstimation
     {
     public:
         typedef pcl::FPFHSignature33 DescriptorType;
+
+        FPFHFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
+        {
+            argumentCategory.define();
+        }
 
         virtual void describe(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
@@ -44,12 +48,11 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory FPFHFeatureDescriptor<PointT>::argumentCategory(
-            "FPFH", "Fast Point Feature Histogram (FPFH)");
+            "FPFH", "Fast Point Feature Histogram (FPFH)",
+            PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
     Parameter FPFHFeatureDescriptor<PointT>::searchRadius = Parameter(
             "FPFH", "search_r", (float)20.0f,
             "Search radius for finding neighbors, must be larger than pc_normal_nn");
 }
-
-#endif // FPFH_H
