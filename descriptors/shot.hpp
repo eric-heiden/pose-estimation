@@ -19,15 +19,6 @@ namespace PoseEstimation
         SHOTFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
             argumentCategory.define();
-
-            //TODO: initialize in describe(...) to make useColor runtime variable?
-            _shot = new pcl::SHOTColorEstimationOMP
-                    <PointT, NormalType, DescriptorType>(true, useColor.value<bool>());
-        }
-
-        virtual ~SHOTFeatureDescriptor()
-        {
-            delete _shot;
         }
 
         virtual void describe(PC<PointT> &pc,
@@ -35,24 +26,17 @@ namespace PoseEstimation
                               const PclNormalCloud::Ptr &normals,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
-            Logger::debug("SHOT 1");
-            Logger::debug(boost::format("sr: %1%") % (pc.resolution() * searchRadius.value<float>()));
-            _shot->setRadiusSearch(pc.resolution() * searchRadius.value<float>());
-            Logger::debug("SHOT 2");
-            Logger::debug(boost::format("lr: %1%") % (pc.resolution() * lrfRadius.value<float>()));
-            _shot->setLRFRadius(pc.resolution() * lrfRadius.value<float>());
-            Logger::debug("SHOT 3");
-            Logger::debug(boost::format("Keypoints: %1%") % keypoints->size());
-            _shot->setInputCloud(keypoints);
-            Logger::debug("SHOT 4");
-            _shot->setInputNormals(normals);
-            Logger::debug("SHOT 5");
-            _shot->setSearchSurface(pc.cloud());
+            static auto shot = pcl::SHOTColorEstimationOMP
+                    <PointT, NormalType, DescriptorType>(true, useColor.value<bool>());
 
-            Logger::debug("Start shot");
+            shot.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
+            shot.setLRFRadius(pc.resolution() * lrfRadius.value<float>());
+            shot.setInputCloud(keypoints);
+            shot.setInputNormals(pc.normals());
+            shot.setSearchSurface(pc.cloud());
 
             Logger::tic("SHOT Feature Extraction");
-            _shot->compute(*descriptors);
+            shot.compute(*descriptors);
             Logger::toc("SHOT Feature Extraction");
         }
 
@@ -61,9 +45,6 @@ namespace PoseEstimation
         static Parameter useColor;
         static Parameter searchRadius;
         static Parameter lrfRadius;
-
-    private:
-        pcl::SHOTColorEstimationOMP<PointT, NormalType, DescriptorType> *_shot;
     };
 
     template<typename PointT>

@@ -25,7 +25,7 @@ namespace PoseEstimation
     typedef VoxelGridDownsampler<PointType> DefaultDownsampler;
     typedef UniformKeypointExtractor<PointType> DefaultKeypointExtractor;
     typedef BOARDLocalReferenceFrameEstimator<PointType> DefaultLRFEstimator;
-    typedef FPFHFeatureDescriptor<PointType> DefaultFeatureDescriptor;
+    typedef SHOTFeatureDescriptor<PointType> DefaultFeatureDescriptor;
     //typedef RIFTFeatureDescriptor<PointType> DefaultFeatureDescriptor;
     typedef DefaultFeatureDescriptor::DescriptorType DescriptorType;
     //typedef HoughVoting<DescriptorType, DefaultLRFEstimator> DefaultTransformationEstimator;
