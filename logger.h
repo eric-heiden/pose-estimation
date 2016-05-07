@@ -44,7 +44,7 @@ namespace PoseEstimation
     #   define ASSERT(condition, message) \
         do { \
             if (!(condition)) { \
-                Debugger::error(boost::format("Assertion \"" #condition "\" failed in %s line %d: %s") % __FILE__ % __LINE__ % message); \
+                Logger::error(boost::format("Assertion \"" #condition "\" failed in %s line %d: %s") % __FILE__ % __LINE__ % message); \
                 std::exit(EXIT_FAILURE); \
             } \
         } while (false)
