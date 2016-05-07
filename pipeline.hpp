@@ -141,7 +141,7 @@ namespace PoseEstimation
             Logger::log("Feature description...");
             typename PclDescriptorCloud::Ptr source_features(new PclDescriptorCloud);
             typename PclDescriptorCloud::Ptr target_features(new PclDescriptorCloud);
-            Logger::debug("before describing...");
+
             _featureDescriptor->describe(source, source_keypoints, source_keypoint_normals, source_features);
             Logger::debug(boost::format("Computed %d features for source point cloud.") % source_features->size());
             _featureDescriptor->describe(target, target_keypoints, target_keypoint_normals, target_features);
@@ -152,8 +152,6 @@ namespace PoseEstimation
             DefaultFeatureMatcher fm;
             pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
             fm.match(source_features, target_features, correspondences);
-
-            Logger::debug("still works");
 
             for (size_t j = 0; j < correspondences->size(); ++j)
             {
@@ -194,6 +192,9 @@ namespace PoseEstimation
             delete te;
 
             // pose refinement
+            //TODO implement
+
+            // hypothesis verification
             //TODO implement
 
             return stats;
