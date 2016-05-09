@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 
     // actual pose estimation pipeline
     Pipeline<DescriptorType> p;
-    p.useModule(PipelineModuleType::Downsampler, false);
+    p.useModule(PipelineModuleType::Downsampler, true);
     p.process(source, target);
 
     Visualizer::visualize(source);

@@ -5,10 +5,12 @@
 #include "../types.h"
 #include "../parameter.h"
 #include "../featuredescription.hpp"
+#include "../utils.hpp"
 
 namespace PoseEstimation
 {    
     /**
+#include "../utils.hpp"
      * @brief Feature Description using Radius-based Surface Descriptor (RSD)
      */
     template<typename PointT>
@@ -62,7 +64,10 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter RSDFeatureDescriptor<PointT>::searchRadius = Parameter(
-            "RSD", "search_r", (float)5.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
+            "RSD", "search_r", (float)5.0f, "Search radius for finding neighbors",
+            { std::make_shared<VariableConstraint>(
+              ParameterConstraintType::GreaterThan, "pc_normal_nn")
+            });
 
     template<typename PointT>
     Parameter RSDFeatureDescriptor<PointT>::planeRadius = Parameter(

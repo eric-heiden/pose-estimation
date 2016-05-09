@@ -5,6 +5,7 @@
 #include "../types.h"
 #include "../parameter.h"
 #include "../featuredescription.hpp"
+#include "../utils.hpp"
 
 namespace PoseEstimation
 {
@@ -54,5 +55,8 @@ namespace PoseEstimation
     template<typename PointT>
     Parameter FPFHFeatureDescriptor<PointT>::searchRadius = Parameter(
             "FPFH", "search_r", (float)20.0f,
-            "Search radius for finding neighbors, must be larger than pc_normal_nn");
+            "Search radius for finding neighbors",
+            { std::make_shared<VariableConstraint>(
+              ParameterConstraintType::GreaterThan, "pc_normal_nn")
+            });
 }

@@ -4,6 +4,7 @@
 
 #include "../parameter.h"
 #include "../featuredescription.hpp"
+#include "../utils.hpp"
 
 namespace PoseEstimation
 {
@@ -58,7 +59,10 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::searchRadius = Parameter(
-            "SHOT", "search_r", (float)15.0f, "Search radius for finding neighbors, must be larger than pc_normal_nn");
+            "SHOT", "search_r", (float)15.0f, "Search radius for finding neighbors",
+            { std::make_shared<VariableConstraint>(
+              ParameterConstraintType::GreaterThan, "pc_normal_nn")
+            });
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::lrfRadius = Parameter(

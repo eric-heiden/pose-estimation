@@ -45,6 +45,8 @@ namespace PoseEstimation
 
     typedef boost::variant<int, float, char, bool, std::string, Enum> SupportedValue;
 
+    class ParameterConstraint;
+
     /**
      * @brief Abstracts module parameters. Each argument is grouped under a {@see ParameterCategory}
      * and has a name, value, and an optional description.
@@ -59,7 +61,8 @@ namespace PoseEstimation
         Parameter(const std::string &category,
                   const std::string &name,
                   const SupportedValue &value,
-                  const std::string &description = "");
+                  const std::string &description = "",
+                  std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints = {});
 
         /**
          * @brief The identifying name of the console argument.
@@ -75,6 +78,12 @@ namespace PoseEstimation
         std::string& category();
 
         /**
+         * @brief Returns the globally identifying name of the parameter.
+         * @return Globally identifying name, i.e. "<category>_<name>".
+         */
+        std::string parseName() const;
+
+        /**
          * @brief Retrieves value of the console argument.
          * @return The value.
          */
@@ -87,11 +96,31 @@ namespace PoseEstimation
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
+         * @return True, if new value fulfilled all constraints,
+         * otherwise the operation is revoked.
          */
-        virtual inline void setValue(const SupportedValue &value)
+        virtual inline bool setValue(const SupportedValue &value)
         {
+            const SupportedValue old = _value;
             _value = value;
+            if (!_validate())
+                _value = old;
         }
+
+        /**
+         * @brief Retrieves the unchanged value of type SupportedValue.
+         * @return The unchanged value of type SupportedValue.
+         */
+        inline SupportedValue unconvertedValue() const
+        {
+            return _value;
+        }
+
+        /**
+         * @brief Computes the numerical representation of the parameter.
+         * @return Parameter value as a double number.
+         */
+        double numericalValue() const;
 
         /**
          * @brief Prints all registered arguments with their descriptions and default values
@@ -106,13 +135,26 @@ namespace PoseEstimation
          */
         static void parseAll(int argc, char *argv[]);
 
+        /**
+         * @brief Retrieves the converted parameter value, or returns default value.
+         * @param parseName Globally identifying name, i.e. "<category>_<name>".
+         * @param def Default value to be returned if parameter was not found.
+         * @return Parameter value, or def if parameter has not been found.
+         */
         template <typename T>
-        static inline T getOrDefault(const std::string &arg_name, const T &def)
+        static inline T getOrDefault(const std::string &parseName, const T &def)
         {
-            if (_allArgs.find(arg_name) == _allArgs.end())
+            if (_allArgs.find(parseName) == _allArgs.end())
                 return def;
-            return _allArgs[arg_name]->value<T>();
+            return _allArgs[parseName]->value<T>();
         }
+
+        /**
+         * @brief Retrieves parameter based on its name.
+         * @param parseName Globally identifying name, i.e. "<category>_<name>".
+         * @return Parameter, or NULL if not found.
+         */
+        static Parameter *get(std::string parseName);
 
         /**
          * @brief Saves all parameters to a JSON file.
@@ -134,7 +176,9 @@ namespace PoseEstimation
         std::string _category;
         SupportedValue _value;
 
-        std::string _parseName() const;
+        std::vector<std::shared_ptr<ParameterConstraint> > _constraints;
+        bool _validate();
+
         virtual void _display(int indent = 0);
         static std::string _type_name(const SupportedValue &v);
 
@@ -151,7 +195,7 @@ namespace PoseEstimation
             int r = pcl::console::parse_argument(
                         argc,
                         argv,
-                        _parseName().c_str(),
+                        ("--"+parseName()).c_str(),
                         arg);
             if (r >= 0)
                 _value = arg;
@@ -183,19 +227,19 @@ namespace PoseEstimation
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline void setValue(const Enum &value);
+        virtual inline bool setValue(const Enum &value);
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline void setValue(const std::initializer_list<std::string> &value);
+        virtual inline bool setValue(const std::initializer_list<std::string> &value);
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline void setValue(const std::string &value);
+        virtual inline bool setValue(const std::string &value);
 
     private:
         virtual void _display();
@@ -221,5 +265,66 @@ namespace PoseEstimation
         std::string _name;
         std::string _description;
         PipelineModuleType::Type _moduleType;
+    };
+
+    namespace ParameterConstraintType
+    {
+        enum Type
+        {
+            GreaterThan,
+            LessThan,
+            GreaterThanOrEqual,
+            LessThanOrEqual,
+            Equal,
+            NotEqual
+        };
+
+        static std::string str(Type t);
+    }
+
+    /**
+     * @brief Represents a numerical constraint on the parameter.
+     */
+    class ParameterConstraint
+    {
+    public:
+        ParameterConstraint(ParameterConstraintType::Type t);
+
+        virtual bool isFulfilled(Parameter*) const = 0;
+        virtual std::string str() const = 0;
+
+    protected:
+        const ParameterConstraintType::Type _type;
+        bool _basicFulfillmentTest(double value, Parameter *parameter) const;
+    };
+
+    /**
+     * @brief Represents a numerical constraint by a constant on the parameter.
+     */
+    class ConstantConstraint : public ParameterConstraint
+    {
+    public:
+         ConstantConstraint(ParameterConstraintType::Type t, double constant);
+
+         bool isFulfilled(Parameter *parameter) const;
+         std::string str() const;
+
+    private:
+         double _constant;
+    };
+
+    /**
+     * @brief Represents a numerical constraint by another parameter on the parameter.
+     */
+    class VariableConstraint : public ParameterConstraint
+    {
+    public:
+         VariableConstraint(ParameterConstraintType::Type t, const std::string &parameterName);
+
+         bool isFulfilled(Parameter *parameter) const;
+         std::string str() const;
+
+    private:
+         std::string _parameterName;
     };
 }

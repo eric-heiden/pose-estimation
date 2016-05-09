@@ -18,13 +18,14 @@ std::map<std::string, std::string> Parameter::_categories = std::map<std::string
 std::map<PipelineModuleType::Type, std::vector<std::string> > Parameter::_modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
 
 Parameter::Parameter(const std::string &category, const std::string &name,
-                     const SupportedValue &value, const std::string &description)
+                     const SupportedValue &value, const std::string &description,
+                     std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints)
+    : _name(name), _description(description), _category(category), _value(value), _constraints(constraints)
 {
-    _name = name;
-    _description = description;
-    _category = category;
-    _value = value;
-    std::string id = _parseName();
+    const std::string id = parseName();
+
+    if (!_validate())
+        Logger::warning(boost::format("Parameter %1% has been initialized with invalid parameter %2%") % id % _value);
 
     if (_allArgs.find(id) != _allArgs.end())
     {
@@ -58,9 +59,20 @@ std::string &Parameter::category()
     return _category;
 }
 
-std::string Parameter::_parseName() const
+double Parameter::numericalValue() const
 {
-    return (boost::format("--%s_%s") % _category % _name).str();
+    if (_value.type() == typeid(int))
+        return (double)boost::get<int>(_value);
+    if (_value.type() == typeid(float))
+        return (double)boost::get<float>(_value);
+    if (_value.type() == typeid(bool))
+        return (double)(int)boost::get<bool>(_value);
+    return std::nan("Type is not numerical");
+}
+
+std::string Parameter::parseName() const
+{
+    return (boost::format("%s_%s") % _category % _name).str();
 }
 
 std::string Parameter::_type_name(const PoseEstimation::SupportedValue &v)
@@ -83,10 +95,24 @@ void Parameter::_display(int indent)
     while (indent-- > 0)
         std::cout << '\t';
 
-    std::cout << std::left << std::setw(26) << std::setfill(' ') << _parseName()
+    std::cout << std::left << std::setw(26) << std::setfill(' ') << parseName()
               << std::left << std::setw(58) << std::setfill(' ') << description()
               << " ([" << _type_name(_value) << "] "
-              <<  boost::lexical_cast<std::string>(_value) << ")" << std::endl;
+              <<  boost::lexical_cast<std::string>(_value) << ")";
+
+    if (!_constraints.empty())
+    {
+        std::cout << " constraints: ";
+        size_t i = 0;
+        for (auto &&constraint : _constraints)
+        {
+            std::cout << "(" << constraint->str() << ")";
+            if (++i < _constraints.size())
+                std::cout << ", ";
+        }
+    }
+
+    std::cout << std::endl;
 }
 
 /**
@@ -121,11 +147,19 @@ void Parameter::displayAll()
  */
 void Parameter::parseAll(int argc, char *argv[])
 {
-    for (std::map<std::string, Parameter*>::iterator it = _allArgs.begin(); it != _allArgs.end(); ++it)
+    for (auto it = _allArgs.begin(); it != _allArgs.end(); ++it)
     {
         it->second->_parse(argc, argv);
     }
 }
+
+Parameter *Parameter::get(std::string parseName)
+{
+    if (_allArgs.find(parseName) == _allArgs.end())
+        return NULL;
+    return _allArgs[parseName];
+}
+
 
 void _set_json_arg_value(Json &jarg, SupportedValue &value)
 {
@@ -140,6 +174,7 @@ void _set_json_arg_value(Json &jarg, SupportedValue &value)
     else if (value.type() == typeid(bool))
         jarg["value"] = boost::get<bool>(value);
 }
+
 
 bool Parameter::saveAll(const std::string &filename)
 {
@@ -184,6 +219,7 @@ bool Parameter::saveAll(const std::string &filename)
     return true;
 }
 
+
 SupportedValue _json_to_value(Json j)
 {
     if (j.is_boolean())
@@ -194,6 +230,7 @@ SupportedValue _json_to_value(Json j)
         return (int)j;
     return j.dump();
 }
+
 
 bool Parameter::loadAll(const std::string &filename)
 {
@@ -230,6 +267,20 @@ bool Parameter::loadAll(const std::string &filename)
     }
 
     Logger::log(boost::format("Configuration has been read successfully from \"%s\".") % filename);
+}
+
+bool Parameter::_validate()
+{
+    for (auto &&constraint : _constraints)
+    {
+        if (!constraint->isFulfilled(this))
+        {
+            Logger::error(boost::format("Constraint %s %s is not satisfied.")
+                          % parseName() % constraint->str());
+            return false;
+        }
+    }
+    return true;
 }
 
 int Parameter::_parse(int argc, char *argv[])
@@ -287,39 +338,45 @@ void ParameterCategory::define()
 
 EnumParameter::EnumParameter(const std::string &category, const std::string &name,
                              std::initializer_list<std::string> value, const std::string &description)
-    : Parameter(category, name, Enum::define(value), description)
+    : Parameter(category, name, Enum::define(value), description, {})
 {
 
 }
 
 EnumParameter::EnumParameter(const std::string &category, const std::string &name,
                              Enum &value, const std::string &description)
-    : Parameter(category, name, value, description)
+    : Parameter(category, name, value, description, {})
 {
 
 }
 
-void EnumParameter::setValue(const std::string &value)
+bool EnumParameter::setValue(const std::string &value)
 {
     int id;
     if ((boost::get<Enum>(_value)).get(value, id))
+    {
         (boost::get<Enum>(_value)).value = id;
+        return true;
+    }
+    return false;
 }
 
-void EnumParameter::setValue(const std::initializer_list<std::string> &value)
+bool EnumParameter::setValue(const std::initializer_list<std::string> &value)
 {
     _value = Enum::define(value);
+    return true;
 }
 
-void EnumParameter::setValue(const Enum &value)
+bool EnumParameter::setValue(const Enum &value)
 {
     _value = value;
+    return true;
 }
 
 void EnumParameter::_display()
 {
     Enum val = boost::get<Enum>(_value);
-    std::cout << std::left << std::setw(26) << std::setfill(' ') << _parseName()
+    std::cout << std::left << std::setw(26) << std::setfill(' ') << parseName()
               << std::left << std::setw(58) << std::setfill(' ') << description()
               << " ([Enum of " << boost::algorithm::join(val.names(), "|") << "] "
               << val.valueName() << ")" << std::endl;
@@ -384,4 +441,83 @@ Enum Enum::define(std::initializer_list<std::string> _names)
     }
 
     return e;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ParameterConstraint::ParameterConstraint(ParameterConstraintType::Type t)
+    : _type(t)
+{
+
+}
+
+bool ParameterConstraint::_basicFulfillmentTest(double value, Parameter *parameter) const
+{
+    switch (_type)
+    {
+        case ParameterConstraintType::GreaterThan:
+            return parameter->numericalValue() > value;
+        case ParameterConstraintType::GreaterThanOrEqual:
+            return parameter->numericalValue() >= value;
+        case ParameterConstraintType::LessThan:
+            return parameter->numericalValue() < value;
+        case ParameterConstraintType::LessThanOrEqual:
+            return parameter->numericalValue() <= value;
+        case ParameterConstraintType::Equal:
+            return std::abs(parameter->numericalValue() - value) <= std::numeric_limits<float>::epsilon();
+        case ParameterConstraintType::NotEqual:
+            return std::abs(parameter->numericalValue() - value) > std::numeric_limits<float>::epsilon();
+    }
+    return false;
+}
+
+
+ConstantConstraint::ConstantConstraint(ParameterConstraintType::Type t, double constant)
+    : ParameterConstraint(t), _constant(constant)
+{
+
+}
+
+bool ConstantConstraint::isFulfilled(Parameter *parameter) const
+{
+    return _basicFulfillmentTest(_constant, parameter);
+}
+
+std::string ConstantConstraint::str() const
+{
+    static std::string _str = (boost::format("%s %d") % ParameterConstraintType::str(_type) % _constant).str();
+    return _str;
+}
+
+
+VariableConstraint::VariableConstraint(ParameterConstraintType::Type t, const std::string &parameterName)
+    : ParameterConstraint(t), _parameterName(parameterName)
+{
+
+}
+
+bool VariableConstraint::isFulfilled(Parameter *parameter) const
+{
+    Parameter *p = Parameter::get(_parameterName);
+    if (!p)
+    {
+        Logger::warning(boost::format("Parameter \"%s\" could not be found for constraint fulfillment test.")
+                        % _parameterName);
+        return false;
+    }
+
+    return _basicFulfillmentTest(p->numericalValue(), parameter);
+}
+
+std::string VariableConstraint::str() const
+{
+    static std::string _str = (boost::format("%s %s") % ParameterConstraintType::str(_type) % _parameterName).str();
+    return _str;
+}
+
+
+std::string ParameterConstraintType::str(ParameterConstraintType::Type t)
+{
+    static std::string names[] = { ">", "<", ">=", "<=", "=", "!=" };
+    return names[(size_t)t];
 }

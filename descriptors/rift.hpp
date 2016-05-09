@@ -100,7 +100,10 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter RIFTFeatureDescriptor<PointT>::searchRadius = Parameter(
-            "RIFT", "search_r", (float)50.0f, "Search radius for finding neighbors, must be larger than RIFT_normal_nn");
+            "RIFT", "search_r", (float)50.0f, "Search radius for finding neighbors",
+            { std::make_shared<VariableConstraint>(
+              ParameterConstraintType::GreaterThan, "pc_normal_nn")
+            });
 
     template<typename PointT>
     Parameter RIFTFeatureDescriptor<PointT>::normalRadius = Parameter(
