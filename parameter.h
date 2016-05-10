@@ -10,7 +10,7 @@
 
 #include <pcl/console/parse.h>
 
-#include "pipelinemodule.hpp"
+#include "pipelinemoduletype.hpp"
 
 namespace PoseEstimation
 {
@@ -103,7 +103,7 @@ namespace PoseEstimation
         {
             const SupportedValue old = _value;
             _value = value;
-            if (!_validate())
+            if (!isValid())
                 _value = old;
         }
 
@@ -117,10 +117,33 @@ namespace PoseEstimation
         }
 
         /**
+         * @brief Determines whether the parameter is a number.
+         * @return True, if the parameter is a number.
+         */
+        bool isNumber() const;
+
+        /**
          * @brief Computes the numerical representation of the parameter.
          * @return Parameter value as a double number.
          */
         double numericalValue() const;
+
+        /**
+         * @brief Returns a reference to the constraints imposed on the parameter.
+         * @return Reference to the constraints imposed on the parameter.
+         */
+        std::vector<std::shared_ptr<ParameterConstraint> > &constraints();
+
+        /**
+         * @brief Determines wether the parameter satisfies all imposed constraints.
+         * @return True, if the parameter satisfies all imposed constraints.
+         */
+        bool isValid();
+
+
+        /*********************************************************************************
+         *                               Static methods                                  *
+         * *******************************************************************************/
 
         /**
          * @brief Prints all registered arguments with their descriptions and default values
@@ -177,7 +200,6 @@ namespace PoseEstimation
         SupportedValue _value;
 
         std::vector<std::shared_ptr<ParameterConstraint> > _constraints;
-        bool _validate();
 
         virtual void _display(int indent = 0);
         static std::string _type_name(const SupportedValue &v);

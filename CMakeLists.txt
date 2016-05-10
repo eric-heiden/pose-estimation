@@ -16,9 +16,18 @@ file(GLOB SOURCES
     *.h
     *.hpp
     *.cpp
-    */*
+    descriptors/*
+    downsamplers/*
+    featurematcher/*
+    keypointextractors/*
+    lrfestimators/*
+    poserefiners/*
+    transformationestimators/*
 )
 
+add_subdirectory(test)
+
+add_library(${PROJECT_NAME}_lib SHARED ${SOURCES})
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES} ${OpenCV_LIBS} )
+target_link_libraries(${PROJECT_NAME} ${PCL_LIBRARIES} ${OpenCV_LIBS})

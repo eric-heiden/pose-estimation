@@ -24,7 +24,7 @@ Parameter::Parameter(const std::string &category, const std::string &name,
 {
     const std::string id = parseName();
 
-    if (!_validate())
+    if (!isValid())
         Logger::warning(boost::format("Parameter %1% has been initialized with invalid parameter %2%") % id % _value);
 
     if (_allArgs.find(id) != _allArgs.end())
@@ -70,9 +70,35 @@ double Parameter::numericalValue() const
     return std::nan("Type is not numerical");
 }
 
+std::vector<std::shared_ptr<ParameterConstraint> > &Parameter::constraints()
+{
+    return _constraints;
+}
+
+bool Parameter::isValid()
+{
+    for (auto &&constraint : _constraints)
+    {
+        if (!constraint->isFulfilled(this))
+        {
+            Logger::error(boost::format("Constraint %s %s is not satisfied.")
+                          % parseName() % constraint->str());
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string Parameter::parseName() const
 {
     return (boost::format("%s_%s") % _category % _name).str();
+}
+
+bool Parameter::isNumber() const
+{
+    return _value.type() == typeid(int)
+        || _value.type() == typeid(float)
+        || _value.type() == typeid(bool);
 }
 
 std::string Parameter::_type_name(const PoseEstimation::SupportedValue &v)
@@ -267,20 +293,6 @@ bool Parameter::loadAll(const std::string &filename)
     }
 
     Logger::log(boost::format("Configuration has been read successfully from \"%s\".") % filename);
-}
-
-bool Parameter::_validate()
-{
-    for (auto &&constraint : _constraints)
-    {
-        if (!constraint->isFulfilled(this))
-        {
-            Logger::error(boost::format("Constraint %s %s is not satisfied.")
-                          % parseName() % constraint->str());
-            return false;
-        }
-    }
-    return true;
 }
 
 int Parameter::_parse(int argc, char *argv[])
