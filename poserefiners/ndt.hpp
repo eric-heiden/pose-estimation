@@ -17,7 +17,6 @@ namespace PoseEstimation
     public:
         NDTPoseRefiner() : PoseRefiner<PointT>()
         {
-            argumentCategory.define();
         }
 
         virtual bool refine(const PC<PointT> &source, const PC<PointT> &target,
@@ -48,6 +47,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter stepSize;
         static Parameter resolution;

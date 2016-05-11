@@ -8,6 +8,7 @@
 #include "pointcloud.h"
 #include "visualizer.h"
 #include "pipeline.hpp"
+#include "configuration.hpp"
 
 using namespace PoseEstimation;
 
@@ -58,6 +59,8 @@ int main(int argc, char **argv)
 
     // move target cloud to the right to visualize source & target side by side
     target.translate(1, 0, 0);
+
+    Configuration config;
 
     // actual pose estimation pipeline
     Pipeline<DescriptorType> p;

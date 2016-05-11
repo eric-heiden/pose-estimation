@@ -19,7 +19,6 @@ namespace PoseEstimation
     public:
         UniformKeypointExtractor() : KeypointExtractor<PointT>()
         {
-            argumentCategory.define();
         }
 
         virtual void extract(PC<PointT> &pc, typename pcl::PointCloud<PointT>::Ptr &keypoints)
@@ -31,8 +30,10 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter searchRadius;
+
 
     private:
         pcl::UniformSampling<PointT> _uniform_sampling;

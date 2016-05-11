@@ -20,7 +20,6 @@ namespace PoseEstimation
     public:
         KdTreeFeatureMatcher() : FeatureMatcher<DescriptorT>()
         {
-            argumentCategory.define();
         }
 
         virtual void match(const typename pcl::PointCloud<DescriptorT>::Ptr &source_descriptors,
@@ -82,6 +81,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter matchThreshold;
 

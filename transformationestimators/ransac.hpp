@@ -17,7 +17,6 @@ namespace PoseEstimation
     public:
         RANSACTransformationEstimator() : TransformationEstimator<PointT, DescriptorT>()
         {
-            argumentCategory.define();
         }
 
         virtual bool estimate(PC<PointT> &source,
@@ -55,6 +54,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter inlierFraction;
         static Parameter similarityThreshold;

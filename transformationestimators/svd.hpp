@@ -33,8 +33,16 @@ namespace PoseEstimation
             return true;
         }
 
+        static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
+
     private:
         typedef pcl::registration::TransformationEstimationSVD<PointT, PointType, float> _SVDEstimator;
         _SVDEstimator _transformation_estimation;
     };
+
+    template<typename PointT, typename DescriptorT>
+    ParameterCategory SVDTransformationEstimator<PointT, DescriptorT>::argumentCategory(
+                "svd", "Transformation estimation using Singular Value Decomposition (SVD)",
+                PipelineModuleType::TransformationEstimator);
 }

@@ -15,7 +15,6 @@ namespace PoseEstimation
     public:
         UniformDownsampler() : Downsampler<PointT>()
         {
-            argumentCategory.define();
         }
 
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const
@@ -28,6 +27,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter sampleSize;
     };

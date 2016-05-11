@@ -20,7 +20,6 @@ namespace PoseEstimation
 
         USCFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
-            argumentCategory.define();
         }
 
         virtual void describe(PC<PointT> &pc,
@@ -40,6 +39,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter searchRadius;
         static Parameter minRadius;

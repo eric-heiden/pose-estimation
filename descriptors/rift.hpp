@@ -32,7 +32,6 @@ namespace PoseEstimation
 
         RIFTFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
-            argumentCategory.define();
             _rift.setNrDistanceBins(DistanceBins);
             _rift.setNrGradientBins(GradientBins);
         }
@@ -80,6 +79,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter gradientRadius;
         static Parameter searchRadius;

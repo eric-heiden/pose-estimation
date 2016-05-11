@@ -25,12 +25,14 @@ Parameter::Parameter(const std::string &category, const std::string &name,
     const std::string id = parseName();
 
     if (!isValid())
-        Logger::warning(boost::format("Parameter %1% has been initialized with invalid parameter %2%") % id % _value);
+        Logger::warning(boost::format("Parameter %1% has been initialized with invalid parameter %2%")
+                        % id % _value);
 
     if (_allArgs.find(id) != _allArgs.end())
     {
         _allArgs[id]->_value = value;
-        Logger::debug(boost::format("Value of argument \"%1%\" has been updated to [%2%] %3%.") % id % _type_name(value) % value);
+        Logger::debug(boost::format("Value of argument \"%1%\" has been updated to [%2%] %3%.")
+                      % id % _type_name(value) % value);
         return;
     }
     else
@@ -81,7 +83,7 @@ bool Parameter::isValid()
     {
         if (!constraint->isFulfilled(this))
         {
-            Logger::error(boost::format("Constraint %s %s is not satisfied.")
+            Logger::warning(boost::format("Constraint %s %s is not satisfied.")
                           % parseName() % constraint->str());
             return false;
         }
@@ -336,14 +338,16 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
 
 ParameterCategory::ParameterCategory(const std::string &name, const std::string &description,
                                      PipelineModuleType::Type moduleType)
-    : _name(name), _description(description), _moduleType(moduleType)
+    : _name(name)
 {
     Parameter::_defineCategory(name, description, moduleType);
 }
 
-void ParameterCategory::define()
+std::vector<Parameter*> ParameterCategory::parameters() const
 {
-    Parameter::_defineCategory(_name, _description, _moduleType);
+    if (Parameter::_categorized.find(_name) == Parameter::_categorized.end())
+        return std::vector<Parameter*>();
+    return Parameter::_categorized[_name];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -422,6 +426,7 @@ bool Enum::get(std::string name, int &id) const
 
 bool Enum::get(int id, std::string &name) const
 {
+    Logger::debug(boost::format("Trying to access index %i") % id);
     if (_map.left.find(id) == _map.left.end())
         return false;
 
@@ -449,7 +454,7 @@ Enum Enum::define(std::initializer_list<std::string> _names)
     int i = 0;
     for (auto name : _names)
     {
-        e._map.insert(boost::bimap<int, std::string>::value_type(i, name));
+        e._map.insert(boost::bimap<int, std::string>::value_type(i++, name));
     }
 
     return e;
@@ -513,7 +518,7 @@ bool VariableConstraint::isFulfilled(Parameter *parameter) const
     Parameter *p = Parameter::get(_parameterName);
     if (!p)
     {
-        Logger::warning(boost::format("Parameter \"%s\" could not be found for constraint fulfillment test.")
+        Logger::warning(boost::format("Parameter \"%s\" could not be found for constraint satisfaction test.")
                         % _parameterName);
         return false;
     }

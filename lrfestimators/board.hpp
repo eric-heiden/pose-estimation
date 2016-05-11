@@ -18,7 +18,6 @@ namespace PoseEstimation
     public:
         BOARDLocalReferenceFrameEstimator() : LocalReferenceFrameEstimator<PointT>()
         {
-            argumentCategory.define();
         }
 
         virtual void estimate(PC<PointT> &pc,
@@ -36,6 +35,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter searchRadius;
         static Parameter findHoles;

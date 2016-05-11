@@ -15,24 +15,25 @@ namespace PoseEstimation
         PipelineModule(PipelineModuleType::Type t) : _type(t)
         {}
 
+        virtual ParameterCategory parameterCategory() const = 0;
+
+        std::vector<Parameter*> parameters() const
+        {
+            return parameterCategory().parameters();
+        }
+
         PipelineModuleType::Type type() const
         {
             return _type;
         }
 
-        std::vector<Parameter> parameters() const
-        {
-            return _parameters;
-        }
-
-    protected:
-        void _registerParameters(std::initializer_list<Parameter> parameters)
-        {
-            _parameters.insert(_parameters.end(), parameters.begin(), parameters.end());
-        }
-
     private:
         const PipelineModuleType::Type _type;
-        std::vector<Parameter> _parameters;
     };
+
+#define PARAMETER_CATEGORY_GETTER(category) \
+    ParameterCategory parameterCategory() const \
+    { \
+        return category; \
+    }
 }

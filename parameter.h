@@ -267,6 +267,7 @@ namespace PoseEstimation
         virtual void _display();
     };
 
+
     /**
      * @brief Category to group {@see ConsoleArgument} of the same module together and provide
      * a general description of that module in help texts.
@@ -277,17 +278,12 @@ namespace PoseEstimation
         ParameterCategory(const std::string &name, const std::string &description,
                           PipelineModuleType::Type moduleType = PipelineModuleType::Miscellaneous);
 
-        /**
-         * @brief Helper method to enforce static initialization and prevent the linker from
-         * removing parameter category definitions.
-         */
-        void define();
+        std::vector<Parameter*> parameters() const;
 
     private:
         std::string _name;
-        std::string _description;
-        PipelineModuleType::Type _moduleType;
     };
+
 
     namespace ParameterConstraintType
     {

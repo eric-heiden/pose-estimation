@@ -20,7 +20,6 @@ namespace PoseEstimation
 
         FPFHFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
-            argumentCategory.define();
         }
 
         virtual void describe(PC<PointT> &pc,
@@ -40,6 +39,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter searchRadius;
 
@@ -53,7 +53,7 @@ namespace PoseEstimation
             PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
-    Parameter FPFHFeatureDescriptor<PointT>::searchRadius = Parameter(
+    Parameter FPFHFeatureDescriptor<PointT>::searchRadius(
             "FPFH", "search_r", (float)20.0f,
             "Search radius for finding neighbors",
             { std::make_shared<VariableConstraint>(

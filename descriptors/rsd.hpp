@@ -21,8 +21,6 @@ namespace PoseEstimation
 
         RSDFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
-            argumentCategory.define();
-
             typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
             _rsd.setSearchMethod(kdtree);
         }
@@ -44,6 +42,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter saveHistograms;
         static Parameter searchRadius;

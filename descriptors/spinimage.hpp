@@ -26,8 +26,6 @@ namespace PoseEstimation
 
         SpinImageFeatureDescriptor() : FeatureDescriptor<PointT, DescriptorType>()
         {
-            argumentCategory.define();
-
             _si.setImageWidth(Resolution);
         }
 
@@ -45,6 +43,7 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
 
         static Parameter searchRadius;
         static Parameter minRadius;

@@ -25,8 +25,6 @@ namespace PoseEstimation
             _resolution = -1;
             _cloud = cloud;
             _normals = PclNormalCloud::Ptr(new PclNormalCloud);
-
-            argumentCategory.define();
         }
 
         /**

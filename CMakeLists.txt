@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(PCL 1.8 REQUIRED)
 find_package(OpenCV REQUIRED)
-
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${PCL_INCLUDE_DIRS})
@@ -23,6 +22,7 @@ file(GLOB SOURCES
     lrfestimators/*
     poserefiners/*
     transformationestimators/*
+    optimization/*
 )
 
 add_subdirectory(test)
