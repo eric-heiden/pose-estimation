@@ -31,6 +31,8 @@ int main(int argc, char **argv)
     Parameter::saveAll();
     Parameter::loadAll();
 
+    Visualizer::enabled() = false;
+
     if (pcl::console::find_switch(argc, argv, "-h"))
         showHelp(argv[0]);
 

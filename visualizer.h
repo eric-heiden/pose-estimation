@@ -17,7 +17,7 @@ namespace PoseEstimation
         void setPointSize(double size);
 
     private:
-        VisualizerObject(std::string id);
+        VisualizerObject(std::string id = "N/A");
         std::string _id;
     };
 
@@ -25,7 +25,7 @@ namespace PoseEstimation
     {
         friend class VisualizerObject;
     public:
-        virtual ~Visualizer();
+        static bool &enabled();
 
         static VisualizerObject visualize(const PointCloud &pc);
         static VisualizerObject visualize(const PointCloud &pc, const PoseEstimation::Color &c);
@@ -35,9 +35,13 @@ namespace PoseEstimation
 
     private:
         Visualizer(const std::string &title = VISUALIZATION_NAME);
+        const std::string _title;
         static Visualizer _instance;
-        pcl::visualization::PCLVisualizer *_viewer;
+        std::shared_ptr<pcl::visualization::PCLVisualizer> _viewer;
+        std::shared_ptr<pcl::visualization::PCLVisualizer> viewer();
         static unsigned int _obj_counter;
+
+        static bool _enabled;
 
         static std::string object_name();
     };
