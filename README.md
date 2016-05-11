@@ -14,3 +14,5 @@ the project aims at providing an experimentation platform that allows for fast e
 * CMake >=3.1
 * GCC >=4.9
 * BOOST ~1.54
+
+Additionally, for Unit Testing, CppUnit is required.
