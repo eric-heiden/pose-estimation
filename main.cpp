@@ -63,6 +63,7 @@ int main(int argc, char **argv)
     target.translate(1, 0, 0);
 
     Configuration config;
+    config.run(source, target); //TODO not implemented
 
     // actual pose estimation pipeline
     Pipeline<DescriptorType> p;

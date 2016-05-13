@@ -37,7 +37,7 @@ namespace PoseEstimation
             _rsd.setSaveHistograms(saveHistograms.value<bool>());
 
             Logger::tic("RSD Feature Extraction");
-            _rsd->compute(*features);
+            _rsd.compute(*features);
             Logger::toc("RSD Feature Extraction");
         }
 

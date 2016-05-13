@@ -21,8 +21,6 @@ namespace PoseEstimation
     {
         friend class EnumParameter;
     public:
-        Enum();
-
         int value;
         std::string valueName() const;
 
@@ -40,6 +38,7 @@ namespace PoseEstimation
         }
 
     private:
+        Enum();
         boost::bimap<int, std::string> _map;
     };
 
@@ -238,33 +237,35 @@ namespace PoseEstimation
         EnumParameter(const std::string &category,
                       const std::string &name,
                       Enum &value,
-                      const std::string &description = "");
+                      const std::string &description = "",
+                      std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints = {});
 
         EnumParameter(const std::string &category,
                       const std::string &name,
                       std::initializer_list<std::string> value,
-                      const std::string &description = "");
+                      const std::string &description = "",
+                      std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints = {});
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline bool setValue(const Enum &value);
+        virtual bool setValue(const Enum &value);
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline bool setValue(const std::initializer_list<std::string> &value);
+        virtual bool setValue(const std::initializer_list<std::string> &value);
 
         /**
          * @brief Defines the value of the console argument.
          * @param value The value.
          */
-        virtual inline bool setValue(const std::string &value);
+        virtual bool setValue(const std::string &value);
 
     private:
-        virtual void _display();
+        virtual void _display(int indent = 0);
     };
 
 
@@ -279,6 +280,8 @@ namespace PoseEstimation
                           PipelineModuleType::Type moduleType = PipelineModuleType::Miscellaneous);
 
         std::vector<Parameter*> parameters() const;
+
+        static ParameterCategory& EmptyCategory();
 
     private:
         std::string _name;

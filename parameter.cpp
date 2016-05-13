@@ -24,9 +24,13 @@ Parameter::Parameter(const std::string &category, const std::string &name,
 {
     const std::string id = parseName();
 
+    Logger::debug(boost::format("%s has type %i, original: %i") % id % _value.which() % value.which());
+
     if (!isValid())
+    {
         Logger::warning(boost::format("Parameter %1% has been initialized with invalid parameter %2%")
                         % id % _value);
+    }
 
     if (_allArgs.find(id) != _allArgs.end())
     {
@@ -42,8 +46,12 @@ Parameter::Parameter(const std::string &category, const std::string &name,
     {
         _categories[category] = "";
         _categorized[category] = std::vector<Parameter*>();
+        if (_modules.find(PipelineModuleType::Miscellaneous) == _modules.end())
+            _modules[PipelineModuleType::Miscellaneous] = std::vector<std::string>();
+        _modules[PipelineModuleType::Miscellaneous].push_back(category);
     }
     _categorized[category].push_back(this);
+    //Logger::debug(boost::format("Parameter %s has been initialized.") % id);
 }
 
 std::string &Parameter::name()
@@ -321,17 +329,30 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
                                 PipelineModuleType::Type moduleType)
 {
     _categories[name] = description;
-    if (_categorized.find(name) == _categorized.end())
-        _categorized[name] = std::vector<Parameter*>();
-    else
-    {
-        // category already exists
-        return;
-    }
-
     if (_modules.find(moduleType) == _modules.end())
         _modules[moduleType] = std::vector<std::string>();
-    _modules[moduleType].push_back(name);
+
+    if (_categorized.find(name) == _categorized.end())
+        _categorized[name] = std::vector<Parameter*>();
+
+    if (_modules.find(PipelineModuleType::Miscellaneous) != _modules.end()
+            && std::find(_modules[PipelineModuleType::Miscellaneous].begin(),
+                         _modules[PipelineModuleType::Miscellaneous].end(),
+                         name) != _modules[PipelineModuleType::Miscellaneous].end())
+    {
+        // category already exists, reassign it to the correct module type
+        std::vector<std::string> &cats = _modules[PipelineModuleType::Miscellaneous];
+        auto it = std::find(cats.begin(), cats.end(), name);
+        if (it != cats.end())
+            cats.erase(it);
+    }
+    else if (std::find(_modules[moduleType].begin(),
+                       _modules[moduleType].end(),
+                       name) == _modules[moduleType].end())
+    {
+        _modules[moduleType].push_back(name);
+        Logger::debug(boost::format("Category %s has been defined.") % name);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +361,8 @@ ParameterCategory::ParameterCategory(const std::string &name, const std::string 
                                      PipelineModuleType::Type moduleType)
     : _name(name)
 {
-    Parameter::_defineCategory(name, description, moduleType);
+    if (name != "empty")
+        Parameter::_defineCategory(name, description, moduleType);
 }
 
 std::vector<Parameter*> ParameterCategory::parameters() const
@@ -350,20 +372,30 @@ std::vector<Parameter*> ParameterCategory::parameters() const
     return Parameter::_categorized[_name];
 }
 
+ParameterCategory *_emptyCategory = nullptr;
+ParameterCategory& ParameterCategory::EmptyCategory()
+{
+    if (!_emptyCategory)
+        _emptyCategory = new ParameterCategory("empty", "");
+    return *_emptyCategory;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EnumParameter::EnumParameter(const std::string &category, const std::string &name,
-                             std::initializer_list<std::string> value, const std::string &description)
-    : Parameter(category, name, Enum::define(value), description, {})
+                             std::initializer_list<std::string> value, const std::string &description,
+                             std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints)
+    : Parameter(category, name, Enum::define(value), description, constraints)
 {
-
+    std::cout << std::endl << std::endl << std::endl;
+    std::cout << _value.which() << std::endl;
 }
 
 EnumParameter::EnumParameter(const std::string &category, const std::string &name,
-                             Enum &value, const std::string &description)
-    : Parameter(category, name, value, description, {})
+                             Enum &value, const std::string &description,
+                             std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints)
+    : Parameter(category, name, value, description, constraints)
 {
-
 }
 
 bool EnumParameter::setValue(const std::string &value)
@@ -389,12 +421,15 @@ bool EnumParameter::setValue(const Enum &value)
     return true;
 }
 
-void EnumParameter::_display()
+void EnumParameter::_display(int indent)
 {
+    while (indent-- > 0)
+        std::cout << '\t';
+
     Enum val = boost::get<Enum>(_value);
     std::cout << std::left << std::setw(26) << std::setfill(' ') << parseName()
               << std::left << std::setw(58) << std::setfill(' ') << description()
-              << " ([Enum of " << boost::algorithm::join(val.names(), "|") << "] "
+              << " ([" << boost::algorithm::join(val.names(), "|") << "] "
               << val.valueName() << ")" << std::endl;
 }
 
@@ -426,7 +461,6 @@ bool Enum::get(std::string name, int &id) const
 
 bool Enum::get(int id, std::string &name) const
 {
-    Logger::debug(boost::format("Trying to access index %i") % id);
     if (_map.left.find(id) == _map.left.end())
         return false;
 

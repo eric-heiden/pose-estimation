@@ -10,6 +10,7 @@ class ParameterTest : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE(ParameterTest);
     CPPUNIT_TEST(EnumTest);
+    CPPUNIT_TEST(EnumParameterTest);
     CPPUNIT_TEST(SimpleParameterTest);
     CPPUNIT_TEST_SUITE_END();
 
@@ -33,6 +34,14 @@ public:
         CPPUNIT_ASSERT_EQUAL(1, idx);
     }
 
+    void EnumParameterTest()
+    {
+        EnumParameter ep("category", "enumparameter", {"a", "b", "c"});
+        CPPUNIT_ASSERT(ep.setValue("b"));
+        std::cout << "Enum Parameter Initialized" << std::endl;
+        Parameter::displayAll();
+    }
+
     void SimpleParameterTest()
     {
         Parameter p1("category", "name", (int)1, "description");
@@ -41,7 +50,8 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(1, Parameter::getOrDefault("category_name", 0));
 
-        p1.constraints().push_back(std::make_shared<ConstantConstraint>(ParameterConstraintType::GreaterThan, 1));
+        p1.constraints().push_back(std::make_shared<ConstantConstraint>(
+                                       ParameterConstraintType::GreaterThan, 1));
         CPPUNIT_ASSERT(!p1.isValid());
 
         p1.constraints().clear();

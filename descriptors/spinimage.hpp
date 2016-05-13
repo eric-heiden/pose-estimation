@@ -51,7 +51,7 @@ namespace PoseEstimation
         static Parameter densityRadius;
 
     private:
-        pcl::SpinImageEstimation<PointT, DescriptorType, RFType> _si;
+        pcl::SpinImageEstimation<PointT, NormalType, DescriptorType> _si;
     };
 
     template<typename PointT>

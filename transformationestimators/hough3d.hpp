@@ -6,12 +6,14 @@
 #include "../parameter.h"
 #include "../logger.h"
 
+#include "../lrfestimators/board.hpp"
+
 namespace PoseEstimation
 {
     /**
      * @brief Transformation estimation using Hough 3D Voting (Correspondence Grouping).
      */
-    template<typename PointT, typename DescriptorT, typename LRFEstimatorT>
+    template<typename PointT, typename DescriptorT, typename LRFEstimatorT = BOARDLocalReferenceFrameEstimator<PointT> >
     class HoughVoting : public TransformationEstimator<PointT, DescriptorT>
     {
     public:
