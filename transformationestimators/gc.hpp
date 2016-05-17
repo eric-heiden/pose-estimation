@@ -58,19 +58,19 @@ namespace PoseEstimation
 
     template<typename PointT, typename DescriptorT>
     ParameterCategory GeometricConsistency<PointT, DescriptorT>::argumentCategory(
-            "cg", "Transformation estimation using Geometric Consistency (Correspondence Grouping)",
+            "gc", "Transformation estimation using Geometric Consistency (Correspondence Grouping)",
             PipelineModuleType::TransformationEstimator);
 
     template<typename PointT, typename DescriptorT>
     Parameter GeometricConsistency<PointT, DescriptorT>::resolution = Parameter(
-            "cg",
+            "gc",
             "resolution",
             5.0f,
             "Consensus set resolution");
 
     template<typename PointT, typename DescriptorT>
     Parameter GeometricConsistency<PointT, DescriptorT>::threshold = Parameter(
-            "cg",
+            "gc",
             "thresh",
             5.0f,
             "Minimum cluster size");

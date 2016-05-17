@@ -45,6 +45,7 @@ namespace PoseEstimation
     typedef boost::variant<int, float, char, bool, std::string, Enum> SupportedValue;
 
     class ParameterConstraint;
+    class ParameterCategory;
 
     /**
      * @brief Abstracts module parameters. Each argument is grouped under a {@see ParameterCategory}
@@ -65,16 +66,18 @@ namespace PoseEstimation
 
         /**
          * @brief The identifying name of the console argument.
-         */
+         */        
         std::string& name();
+
         /**
          * @brief Description of the argument to be displayed in help texts.
-         */
+         */        
         std::string& description();
+
         /**
-         * @brief The name of the {@see ConsoleArgumentCategory}.
+         * @brief The {@see ParameterCategory}.
          */
-        std::string& category();
+        ParameterCategory category();
 
         /**
          * @brief Returns the globally identifying name of the parameter.
@@ -276,10 +279,14 @@ namespace PoseEstimation
     class ParameterCategory
     {
     public:
-        ParameterCategory(const std::string &name, const std::string &description,
+        ParameterCategory(const std::string &name, const std::string &description = "",
                           PipelineModuleType::Type moduleType = PipelineModuleType::Miscellaneous);
 
+        ParameterCategory(const ParameterCategory &category);
+
         std::vector<Parameter*> parameters() const;
+
+        std::string name() const;
 
         static ParameterCategory& EmptyCategory();
 

@@ -94,12 +94,12 @@ namespace PoseEstimation
 
     template<typename DescriptorT>
     ParameterCategory KdTreeFeatureMatcher<DescriptorT>::argumentCategory(
-                "kd_match", "Kd-tree correspondence matching",
+                "kdmatch", "Kd-tree correspondence matching",
                 PipelineModuleType::FeatureMatcher);
 
     template<typename DescriptorT>
     Parameter KdTreeFeatureMatcher<DescriptorT>::matchThreshold = Parameter(
-                "kd_match",
+                "kdmatch",
                 "thresh",
                 (float)0.15f,
                 "Top percentage of correspondence distances that are considered");

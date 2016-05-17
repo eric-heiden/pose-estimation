@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/preprocessor.hpp>
+
 #include "pipelinemodule.hpp"
 #include "parameter.h"
 #include "pipeline.hpp"
@@ -27,6 +29,28 @@
 
 namespace PoseEstimation
 {
+#define DESCRIPTORS (FPFHFeatureDescriptor) \
+                    (RIFTFeatureDescriptor) \
+                    (RSDFeatureDescriptor) \
+                    (SHOTFeatureDescriptor) \
+                    (SpinImageFeatureDescriptor) \
+                    (USCFeatureDescriptor)
+
+#define CASE_BRANCH_INNER(elem) \
+{ \
+    std::shared_ptr<FeatureDescriptor<PointT, typename elem<PointT>::DescriptorType> > f = std::make_shared<elem<PointT> >(); \
+    return _run<typename elem<PointT>::DescriptorType>(source, target, f); \
+}
+
+#define CASE_BRANCH(next, _, i, elem) \
+    case i: CASE_BRANCH_INNER(elem)
+
+
+#define CASE_BODY(seq) \
+    BOOST_PP_SEQ_FOR_EACH_I(CASE_BRANCH, _, seq); \
+    default: CASE_BRANCH_INNER(BOOST_PP_SEQ_HEAD(seq));
+
+
     /**
      * @brief Configuration of modules for pose estimation pipeline
      */
@@ -44,81 +68,14 @@ namespace PoseEstimation
 
         PipelineStats run(PC<PointT> &source, PC<PointT> &target)
         {
-            // configure pipeline and execute pipeline::process
+            switch (descriptor.value<Enum>().value)
+            {
+                CASE_BODY(DESCRIPTORS)
+            }
         }
 
         //TODO implement LRF Estimator module selector (currently useless as there is only BOARD LRF Estimation).
         //TODO implement pose refiner module selector (currently not used in the pipeline)
-
-        template<class T>
-        static std::shared_ptr<T> descriptorModule()
-        {
-            switch (descriptor.value<Enum>().value)
-            {
-                case 0:
-                    return std::make_shared<T>(FPFHFeatureDescriptor<PointT>());
-                case 1:
-                    return std::make_shared<T>(RIFTFeatureDescriptor<PointT>());
-                case 2:
-                    return std::make_shared<T>(RSDFeatureDescriptor<PointT>());
-                case 3:
-                    return std::make_shared<T>(SHOTFeatureDescriptor<PointT>());
-                case 4:
-                    return std::make_shared<T>(SpinImageFeatureDescriptor<PointT>());
-                default:
-                    return std::make_shared<T>(USCFeatureDescriptor<PointT>());
-            }
-        }
-
-        template<class T>
-        static std::shared_ptr<T> downsamplerModule()
-        {
-            switch (downsampler.value<Enum>().value)
-            {
-                case 0:
-                    return std::make_shared<T>(UniformDownsampler<PointT>());
-                default:
-                    return std::make_shared<T>(VoxelGridDownsampler<PointT>());
-            }
-        }
-
-        template<class T, typename DescriptorT>
-        static std::shared_ptr<T> featureMatcherModule()
-        {
-            switch (featureMatcher.value<Enum>().value)
-            {
-                default:
-                    return std::make_shared<T>(KdTreeFeatureMatcher<DescriptorT>());
-            }
-        }
-
-        template<class T>
-        static std::shared_ptr<T> keypointExtractorModule()
-        {
-            switch (keypointExtractor.value<Enum>().value)
-            {
-                case 0:
-                    return std::make_shared<T>(UniformKeypointExtractor<PointT>());
-                default:
-                    return std::make_shared<T>(ISSKeypointExtractor<PointT>());
-            }
-        }
-
-        template<class T, typename DescriptorT>
-        static std::shared_ptr<T> transformationEstimatorModule()
-        {
-            switch (transformationEstimator.value<Enum>().value)
-            {
-                case 0:
-                    return std::make_shared<T>(GeometricConsistency<PointT, DescriptorT>());
-                case 1:
-                    return std::make_shared<T>(HoughVoting<PointT, DescriptorT>());
-                case 2:
-                    return std::make_shared<T>(RANSACTransformationEstimator<PointT, DescriptorT>());
-                default:
-                    return std::make_shared<T>(SVDTransformationEstimator<PointT, DescriptorT>());
-            }
-        }
 
         /**
          * @brief Retrieves all parameters of the configured modules.
@@ -128,11 +85,11 @@ namespace PoseEstimation
         {
             std::vector<Parameter*> ps;
 
-            _appendParameters(descriptorModule<PipelineModule>()->parameters(), ps);
-            _appendParameters(downsamplerModule<PipelineModule>()->parameters(), ps);
-            _appendParameters(featureMatcherModule<PipelineModule, PointT>()->parameters(), ps);
-            _appendParameters(keypointExtractorModule<PipelineModule>()->parameters(), ps);
-            _appendParameters(transformationEstimatorModule<PipelineModule, PointT>()->parameters(), ps);
+            _appendParameters(_moduleParameters(descriptor), ps);
+            _appendParameters(_moduleParameters(downsampler), ps);
+            _appendParameters(_moduleParameters(featureMatcher), ps);
+            _appendParameters(_moduleParameters(keypointExtractor), ps);
+            _appendParameters(_moduleParameters(transformationEstimator), ps);
 
             return ps;
         }
@@ -152,6 +109,60 @@ namespace PoseEstimation
         {
             target.insert(target.end(), source.begin(), source.end());
         }
+
+        static std::vector<Parameter*> _moduleParameters(const EnumParameter &module)
+        {
+            return ParameterCategory(module.value<Enum>().valueName()).parameters();
+        }
+
+        template<typename DescriptorT>
+        static PipelineStats _run(PC<PointT> &source, PC<PointT> &target,
+                                  typename std::shared_ptr<FeatureDescriptor<PointT, DescriptorT> > &descriptor)
+        {
+            Pipeline<DescriptorT, PointT> pipeline;
+            pipeline.featureDescriptor() = descriptor;
+
+            switch (downsampler.value<Enum>().value)
+            {
+                case 1:
+                    pipeline.downsampler() = std::make_shared<VoxelGridDownsampler<PointT> >();
+                    break;
+                default:
+                    pipeline.downsampler() = std::make_shared<UniformDownsampler<PointT> >();
+            }
+
+            switch (featureMatcher.value<Enum>().value)
+            {
+                default:
+                    pipeline.featureMatcher() = std::make_shared<KdTreeFeatureMatcher<DescriptorT> >();
+            }
+
+            switch (keypointExtractor.value<Enum>().value)
+            {
+                case 1:
+                    pipeline.keypointExtractor() = std::make_shared<ISSKeypointExtractor<PointT> >();
+                    break;
+                default:
+                    pipeline.keypointExtractor() = std::make_shared<UniformKeypointExtractor<PointT> >();
+            }
+
+            switch (transformationEstimator.value<Enum>().value)
+            {
+                case 1:
+                    pipeline.transformationEstimator() = std::make_shared<HoughVoting<PointT, DescriptorT> >();
+                    break;
+                case 2:
+                    pipeline.transformationEstimator() = std::make_shared<RANSACTransformationEstimator<PointT, DescriptorT> >();
+                    break;
+                case 3:
+                    pipeline.transformationEstimator() = std::make_shared<SVDTransformationEstimator<PointT, DescriptorT> >();
+                    break;
+                default:
+                    pipeline.transformationEstimator() = std::make_shared<GeometricConsistency<PointT, DescriptorT> >();
+            }
+
+            return pipeline.process(source, target);
+        }
     };
 
     template<class PointT>
@@ -162,19 +173,19 @@ namespace PoseEstimation
     template<typename PointT>
     EnumParameter CF<PointT>::descriptor = EnumParameter(
             "config", "descriptor",
-            { "fpfh", "rift", "rsd", "shot", "spinimage", "usc" },
+            { "FPFH", "RIFT", "RSD", "SHOT", "SI", "USC" },
             "Feature descriptor module");
 
     template<typename PointT>
     EnumParameter CF<PointT>::downsampler = EnumParameter(
             "config", "downsampler",
-            { "uniform", "voxelgrid" },
+            { "uniformdown", "voxelgrid" },
             "Downsampler module");
 
     template<typename PointT>
     EnumParameter CF<PointT>::featureMatcher = EnumParameter(
             "config", "feature_matcher",
-            { "kdtree" },
+            { "kdmatch" },
             "Feature matcher module");
 
     template<typename PointT>
@@ -186,7 +197,7 @@ namespace PoseEstimation
     template<typename PointT>
     EnumParameter CF<PointT>::transformationEstimator = EnumParameter(
             "config", "transformation_estimator",
-            { "gc", "hough3d", "ransac", "svd" },
+            { "gc", "hough", "ransac", "svd" },
             "Transformation estimator module");
 
 

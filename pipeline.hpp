@@ -31,6 +31,13 @@ namespace PoseEstimation
 
         bool transformationSuccessful;
         std::vector<Eigen::Matrix4f> transformationInstances;
+
+        double performance()
+        {
+            return 0.5 * correspondencesFound
+                    + averageCorrespondenceDistance
+                    + 3.0 * transformationInstances.size();
+        }
     };
 
     /**
@@ -44,17 +51,18 @@ namespace PoseEstimation
      * * rigid transformation estimation using corresponding feature descriptors
      * * (optional) iterative pose refinement based on priorly estimated transformation
      */
-    template<typename DescriptorT>
+    template<typename DescriptorT, typename PointT = PointType>
     class Pipeline
     {
     public:
         Pipeline()
         {
-            _featureDescriptor = std::make_shared<DefaultFeatureDescriptor>(DefaultFeatureDescriptor());
-            _downsampler = std::make_shared<DefaultDownsampler>(DefaultDownsampler());
-            _keypointExtractor = std::make_shared<DefaultKeypointExtractor>(DefaultKeypointExtractor());
-            _transformationEstimator = std::make_shared<DefaultTransformationEstimator>(DefaultTransformationEstimator());
-            _featureMatcher = std::make_shared<DefaultFeatureMatcher>(DefaultFeatureMatcher());
+            // default initialization
+//            _featureDescriptor = std::make_shared<DefaultFeatureDescriptor>(DefaultFeatureDescriptor());
+//            _downsampler = std::make_shared<DefaultDownsampler>(DefaultDownsampler());
+//            _keypointExtractor = std::make_shared<DefaultKeypointExtractor>(DefaultKeypointExtractor());
+//            _transformationEstimator = std::make_shared<DefaultTransformationEstimator>(DefaultTransformationEstimator());
+//            _featureMatcher = std::make_shared<DefaultFeatureMatcher>(DefaultFeatureMatcher());
 
             _usedModules[PipelineModuleType::Downsampler] = true;
             _usedModules[PipelineModuleType::FeatureDescriptor] = true;
@@ -64,32 +72,58 @@ namespace PoseEstimation
             _usedModules[PipelineModuleType::TransformationEstimator] = true;
         }
 
-        std::shared_ptr<FeatureDescriptor<PointType, DescriptorT> >& featureDescriptor()
+        /**
+         * @brief The module for feature description.
+         * @return Reference that allows for replacing the module.
+         */
+        std::shared_ptr<FeatureDescriptor<PointT, DescriptorT> >& featureDescriptor()
         {
             return _featureDescriptor;
         }
 
-        std::shared_ptr<Downsampler<PointType> >& downsampler()
+        /**
+         * @brief The module for point cloud downsampling.
+         * @return Reference that allows for replacing the module.
+         */
+        std::shared_ptr<Downsampler<PointT> >& downsampler()
         {
             return _downsampler;
         }
 
-        std::shared_ptr<KeypointExtractor<PointType> >& keypointExtractor()
+        /**
+         * @brief The module for keypoint extraction.
+         * @return Reference that allows for replacing the module.
+         */
+        std::shared_ptr<KeypointExtractor<PointT> >& keypointExtractor()
         {
             return _keypointExtractor;
         }
 
-        std::shared_ptr<TransformationEstimator<PointType, DescriptorT> >& transformationEstimator()
+        /**
+         * @brief The module for transformation estimation.
+         * @return Reference that allows for replacing the module.
+         */
+        std::shared_ptr<TransformationEstimator<PointT, DescriptorT> >& transformationEstimator()
         {
             return _transformationEstimator;
         }
 
-        std::shared_ptr<FeatureMatcher<DescriptorType> >& featureMatcher()
+        /**
+         * @brief The module for feature matching.
+         * @return Reference that allows for replacing the module.
+         */
+        std::shared_ptr<FeatureMatcher<DescriptorT> >& featureMatcher()
         {
             return _featureMatcher;
         }
 
-        PipelineStats process(PointCloud &source, PointCloud &target) const
+        /**
+         * @brief Execute the pose estimation pipeline.
+         * @param source The source point cloud.
+         * @param target The target point cloud.
+         * @return The {@see PipelineStats} of the pipeline run.
+         */
+        PipelineStats process(PC<PointT> &source, PC<PointT> &target) const
         {
             typedef typename pcl::PointCloud<DescriptorT> PclDescriptorCloud;
 
@@ -149,14 +183,13 @@ namespace PoseEstimation
 
             // matching
             Logger::log("Feature matching...");
-            DefaultFeatureMatcher fm;
             pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
-            fm.match(source_features, target_features, correspondences);
+            _featureMatcher->match(source_features, target_features, correspondences);
 
             for (size_t j = 0; j < correspondences->size(); ++j)
             {
-                PointType &model_point = source_keypoints->at((*correspondences)[j].index_query);
-                PointType &scene_point = target_keypoints->at((*correspondences)[j].index_match);
+                PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
+                PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
 
                 // draw line for each pair of clustered correspondences found between the model and the scene
                 Visualizer::visualize(model_point, scene_point, Color::random());
@@ -164,9 +197,8 @@ namespace PoseEstimation
 
             // transformation estimation
             Logger::log("Transformation estimation...");
-            auto *te = new DefaultTransformationEstimator;
             std::vector<Eigen::Matrix4f> transformations;
-            bool tes = te->estimate(
+            bool tes = _transformationEstimator->estimate(
                         source, target,
                         source_keypoints, target_keypoints,
                         source_features, target_features,
@@ -189,8 +221,6 @@ namespace PoseEstimation
                 }
             }
 
-            delete te;
-
             // pose refinement
             //TODO implement
 
@@ -207,11 +237,11 @@ namespace PoseEstimation
         }
 
     private:
-        std::shared_ptr<FeatureDescriptor<PointType, DescriptorT> > _featureDescriptor;
-        std::shared_ptr<Downsampler<PointType> > _downsampler;
-        std::shared_ptr<KeypointExtractor<PointType> > _keypointExtractor;
-        std::shared_ptr<TransformationEstimator<PointType, DescriptorT> > _transformationEstimator;
-        std::shared_ptr<FeatureMatcher<DescriptorType> > _featureMatcher;
+        std::shared_ptr<FeatureDescriptor<PointT, DescriptorT> > _featureDescriptor;
+        std::shared_ptr<Downsampler<PointT> > _downsampler;
+        std::shared_ptr<KeypointExtractor<PointT> > _keypointExtractor;
+        std::shared_ptr<TransformationEstimator<PointT, DescriptorT> > _transformationEstimator;
+        std::shared_ptr<FeatureMatcher<DescriptorT> > _featureMatcher;
 
         std::map<PipelineModuleType::Type, bool> _usedModules;
     };

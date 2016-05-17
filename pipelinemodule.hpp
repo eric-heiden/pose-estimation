@@ -35,8 +35,9 @@ namespace PoseEstimation
     };
 
 #define PARAMETER_CATEGORY_GETTER(category) \
-    ParameterCategory parameterCategory() const \
+    virtual ParameterCategory parameterCategory() const \
     { \
+        Logger::debug("Overloaded parameter category gets called"); \
         return category; \
     }
 }

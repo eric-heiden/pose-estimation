@@ -63,12 +63,17 @@ int main(int argc, char **argv)
     target.translate(1, 0, 0);
 
     Configuration config;
+    Logger::debug("PRINTING INVOLVED PARAMETERS:");
+    for (Parameter *p : config.involvedParameters())
+    {
+        Logger::debug(boost::format("Involved Parameter: %s") % p->parseName());
+    }
     config.run(source, target); //TODO not implemented
 
     // actual pose estimation pipeline
-    Pipeline<DescriptorType> p;
-    p.useModule(PipelineModuleType::Downsampler, true);
-    p.process(source, target);
+//    Pipeline<DescriptorType> p;
+//    p.useModule(PipelineModuleType::Downsampler, true);
+//    p.process(source, target);
 
     Visualizer::visualize(source);
     Visualizer::visualize(target);

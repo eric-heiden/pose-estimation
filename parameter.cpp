@@ -64,9 +64,9 @@ std::string &Parameter::description()
     return _description;
 }
 
-std::string &Parameter::category()
+ParameterCategory Parameter::category()
 {
-    return _category;
+    return ParameterCategory(_category);
 }
 
 double Parameter::numericalValue() const
@@ -365,11 +365,26 @@ ParameterCategory::ParameterCategory(const std::string &name, const std::string 
         Parameter::_defineCategory(name, description, moduleType);
 }
 
+ParameterCategory::ParameterCategory(const ParameterCategory &category)
+    : _name(category._name)
+{
+
+}
+
 std::vector<Parameter*> ParameterCategory::parameters() const
 {
+    Logger::error(boost::format("Trying to find parameters for category %s") % _name);
     if (Parameter::_categorized.find(_name) == Parameter::_categorized.end())
+    {
+        Logger::warning(boost::format("Category \"%s\" was not found.") % _name);
         return std::vector<Parameter*>();
+    }
     return Parameter::_categorized[_name];
+}
+
+std::string ParameterCategory::name() const
+{
+    return _name;
 }
 
 ParameterCategory *_emptyCategory = nullptr;
