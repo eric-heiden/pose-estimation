@@ -59,12 +59,16 @@ namespace PoseEstimation
     {
     public:
         CF() : PipelineModule(PipelineModuleType::Miscellaneous)
-        {
-            for (auto *parameter : involvedParameters())
-            {
-                Logger::log(boost::format("Configuration parameter %s") % parameter->parseName());
-            }
-        }
+        {}
+
+        //TODO we only have static parameters, a copy constructor (and also
+        // instantiation) is useless
+        //TODO improve design of parameter class (i.e. avoid static parameters)
+        CF(const CF<PointT> &) = default;
+        CF(CF<PointT> &&) = default;
+
+        CF<PointT>& operator=(const CF<PointT>&) & = default;
+        CF<PointT>& operator=(CF<PointT>&&) & = default;
 
         PipelineStats run(PC<PointT> &source, PC<PointT> &target)
         {

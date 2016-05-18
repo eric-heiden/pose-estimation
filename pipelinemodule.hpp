@@ -15,6 +15,12 @@ namespace PoseEstimation
         PipelineModule(PipelineModuleType::Type t) : _type(t)
         {}
 
+        PipelineModule(const PipelineModule &p) : _type(p._type)
+        {}
+
+        PipelineModule(PipelineModule &&p) : _type(p._type)
+        {}
+
         virtual ParameterCategory parameterCategory() const
         {
             return ParameterCategory::EmptyCategory();
@@ -29,6 +35,12 @@ namespace PoseEstimation
         {
             return _type;
         }
+
+        PipelineModule& operator=(const PipelineModule& p)
+        {}
+
+        PipelineModule& operator=(PipelineModule&& p)
+        {}
 
     private:
         const PipelineModuleType::Type _type;

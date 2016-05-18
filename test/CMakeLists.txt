@@ -8,8 +8,11 @@ find_package(OpenCV REQUIRED)
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
+link_directories(${PCL_LIBRARY_DIRS} "/usr/local/lib/")
 add_definitions(${PCL_DEFINITIONS})
+
+set(GCC_COVERAGE_LINK_FLAGS "-lnlopt -lm")
+add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 
 include_directories(${CMAKE_SOURCE_DIR}
                     ${CMAKE_SOURCE_DIR}/descriptors
@@ -31,5 +34,5 @@ ADD_CUSTOM_TARGET(tests "./run_tests" DEPENDS run_tests COMMENT "Running CPPUNIT
 #ADD_CUSTOM_COMMAND(TARGET run_tests POST_BUILD
 #  COMMAND "${COMMON_RUNTIME_OUTPUT_DIRECTORY}/run_tests")
 
-target_link_libraries(run_tests ${PROJECT_NAME}_lib cppunit ${PCL_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(run_tests ${PROJECT_NAME}_lib cppunit ${PCL_LIBRARIES} ${OpenCV_LIBS} "/usr/local/lib/libnlopt.a")
 install_programs(/bin FILES run_tests)

@@ -131,6 +131,14 @@ namespace PoseEstimation
         double numericalValue() const;
 
         /**
+         * @brief Tries to assign a numerical value to this parameter.
+         * Rounds to integer values if necessary.
+         * @param value A numerical value.
+         * @return True, if the parameter is a number.
+         */
+        bool setNumericalValue(double value);
+
+        /**
          * @brief Returns a reference to the constraints imposed on the parameter.
          * @return Reference to the constraints imposed on the parameter.
          */
@@ -141,6 +149,24 @@ namespace PoseEstimation
          * @return True, if the parameter satisfies all imposed constraints.
          */
         bool isValid();
+
+        /**
+         * @brief Returns the lowest valid value in accordance with the constraints.
+         * If no constraints apply towards the lower bound of this numerical parameter,
+         * the provided default value is returned.
+         * @param defaultValue The default value to be returned if no constraints apply.
+         * @return The minimum valid value or the default value.
+         */
+        double lowerBound(double defaultValue = 1.0) const;
+
+        /**
+         * @brief Returns the highest valid value in accordance with the constraints.
+         * If no constraints apply towards the upper bound of this numerical parameter,
+         * the provided default value is returned.
+         * @param defaultValue The default value to be returned if no constraints apply.
+         * @return The maximum valid value or the default value.
+         */
+        double upperBound(double defaultValue = 100.0) const;
 
 
         /*********************************************************************************
@@ -320,6 +346,9 @@ namespace PoseEstimation
 
         virtual bool isFulfilled(Parameter*) const = 0;
         virtual std::string str() const = 0;
+        virtual double resolveNumericalValue() const = 0;
+
+        ParameterConstraintType::Type type() const;
 
     protected:
         const ParameterConstraintType::Type _type;
@@ -336,9 +365,10 @@ namespace PoseEstimation
 
          bool isFulfilled(Parameter *parameter) const;
          std::string str() const;
+         double resolveNumericalValue() const;
 
     private:
-         double _constant;
+         const double _constant;
     };
 
     /**
@@ -351,8 +381,9 @@ namespace PoseEstimation
 
          bool isFulfilled(Parameter *parameter) const;
          std::string str() const;
+         double resolveNumericalValue() const;
 
     private:
-         std::string _parameterName;
+         const std::string _parameterName;
     };
 }

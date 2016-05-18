@@ -9,6 +9,7 @@
 #include "visualizer.h"
 #include "pipeline.hpp"
 #include "configuration.hpp"
+#include "optimization/optimizer.hpp"
 
 using namespace PoseEstimation;
 
@@ -63,12 +64,9 @@ int main(int argc, char **argv)
     target.translate(1, 0, 0);
 
     Configuration config;
-    Logger::debug("PRINTING INVOLVED PARAMETERS:");
-    for (Parameter *p : config.involvedParameters())
-    {
-        Logger::debug(boost::format("Involved Parameter: %s") % p->parseName());
-    }
-    config.run(source, target); //TODO not implemented
+    Optimizer opt(source, target);
+    opt.optimize(config);
+    //config.run(source, target); //TODO not implemented
 
     // actual pose estimation pipeline
 //    Pipeline<DescriptorType> p;

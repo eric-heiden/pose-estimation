@@ -24,8 +24,6 @@ Parameter::Parameter(const std::string &category, const std::string &name,
 {
     const std::string id = parseName();
 
-    Logger::debug(boost::format("%s has type %i, original: %i") % id % _value.which() % value.which());
-
     if (!isValid())
     {
         Logger::warning(boost::format("Parameter %1% has been initialized with invalid parameter %2%")
@@ -80,6 +78,26 @@ double Parameter::numericalValue() const
     return std::nan("Type is not numerical");
 }
 
+bool Parameter::setNumericalValue(double value)
+{
+    if (_value.type() == typeid(int))
+    {
+        _value = (int)round(value);
+        return true;
+    }
+    if (_value.type() == typeid(float))
+    {
+        _value = (float)value;
+        return true;
+    }
+    if (_value.type() == typeid(bool))
+    {
+        _value = (bool)(int)round(value);
+        return true;
+    }
+    return false;
+}
+
 std::vector<std::shared_ptr<ParameterConstraint> > &Parameter::constraints()
 {
     return _constraints;
@@ -97,6 +115,50 @@ bool Parameter::isValid()
         }
     }
     return true;
+}
+
+double Parameter::lowerBound(double defaultValue) const
+{
+    bool found = false;
+    double lb;
+    for (auto constraint : _constraints)
+    {
+        if (constraint->type() == ParameterConstraintType::GreaterThanOrEqual
+                || constraint->type() == ParameterConstraintType::GreaterThan)
+        {
+            if (!found)
+            {
+                found = true;
+                lb = constraint->resolveNumericalValue();
+            }
+            else
+                lb = std::max(lb, constraint->resolveNumericalValue());
+        }
+    }
+
+    return found ? lb : defaultValue;
+}
+
+double Parameter::upperBound(double defaultValue) const
+{
+    bool found = false;
+    double ub;
+    for (auto constraint : _constraints)
+    {
+        if (constraint->type() == ParameterConstraintType::LessThanOrEqual
+                || constraint->type() == ParameterConstraintType::LessThan)
+        {
+            if (!found)
+            {
+                found = true;
+                ub = constraint->resolveNumericalValue();
+            }
+            else
+                ub = std::min(ub, constraint->resolveNumericalValue());
+        }
+    }
+
+    return found ? ub : defaultValue;
 }
 
 std::string Parameter::parseName() const
@@ -351,7 +413,7 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
                        name) == _modules[moduleType].end())
     {
         _modules[moduleType].push_back(name);
-        Logger::debug(boost::format("Category %s has been defined.") % name);
+        //Logger::debug(boost::format("Category %s has been defined.") % name);
     }
 }
 
@@ -373,7 +435,6 @@ ParameterCategory::ParameterCategory(const ParameterCategory &category)
 
 std::vector<Parameter*> ParameterCategory::parameters() const
 {
-    Logger::error(boost::format("Trying to find parameters for category %s") % _name);
     if (Parameter::_categorized.find(_name) == Parameter::_categorized.end())
     {
         Logger::warning(boost::format("Category \"%s\" was not found.") % _name);
@@ -517,6 +578,11 @@ ParameterConstraint::ParameterConstraint(ParameterConstraintType::Type t)
 
 }
 
+ParameterConstraintType::Type ParameterConstraint::type() const
+{
+    return _type;
+}
+
 bool ParameterConstraint::_basicFulfillmentTest(double value, Parameter *parameter) const
 {
     switch (_type)
@@ -555,6 +621,11 @@ std::string ConstantConstraint::str() const
     return _str;
 }
 
+double ConstantConstraint::resolveNumericalValue() const
+{
+    return _constant;
+}
+
 
 VariableConstraint::VariableConstraint(ParameterConstraintType::Type t, const std::string &parameterName)
     : ParameterConstraint(t), _parameterName(parameterName)
@@ -579,6 +650,11 @@ std::string VariableConstraint::str() const
 {
     static std::string _str = (boost::format("%s %s") % ParameterConstraintType::str(_type) % _parameterName).str();
     return _str;
+}
+
+double VariableConstraint::resolveNumericalValue() const
+{
+    return Parameter::get(_parameterName)->numericalValue();
 }
 
 

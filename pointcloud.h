@@ -58,7 +58,7 @@ namespace PoseEstimation
         double resolution()
         {
             if (_resolution <= 0)
-                _compute_resolution();
+                _computeResolution();
             //Debugger::debug(boost::format("Resolution: %d") % _resolution);
             return _resolution;
         }
@@ -168,6 +168,8 @@ namespace PoseEstimation
                 ne.setSearchMethod(tree);
 
                 ne.setRadiusSearch(resolution() * normalEstimationRadius.value<float>());
+                float radius = resolution() * normalEstimationRadius.value<float>();
+                Logger::debug(boost::format("Normal estimation using r = %1%") % radius);
                 ne.setInputCloud(_cloud);
 
                 _normals = PclNormalCloud::Ptr(new PclNormalCloud);
@@ -232,7 +234,7 @@ namespace PoseEstimation
         PclNormalCloud::Ptr _normals;
         double _resolution;
 
-        void _compute_resolution()
+        void _computeResolution()
         {
             _resolution = 0.0;
             int n_points = 0;
