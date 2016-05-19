@@ -27,5 +27,18 @@ namespace PoseEstimation
         virtual void match(const typename pcl::PointCloud<DescriptorT>::Ptr &source_descriptors,
                            const typename pcl::PointCloud<DescriptorT>::Ptr &target_descriptors,
                            pcl::CorrespondencesPtr &correspondences) = 0;
+
+        static double averageDistance(pcl::CorrespondencesPtr &correspondences)
+        {
+            if (correspondences->empty())
+                return 30000.0;
+
+            double r = 0;
+            for (auto &corr : *correspondences)
+            {
+                r += corr.distance;
+            }
+            return r / correspondences->size();
+        }
     };
 }

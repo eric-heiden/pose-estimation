@@ -5,6 +5,7 @@
 #include "pipelinemodule.hpp"
 #include "parameter.h"
 #include "pipeline.hpp"
+#include "pointcloud.h"
 #include "logger.h"
 
 #include "downsamplers/uniform.hpp"
@@ -29,6 +30,7 @@
 
 namespace PoseEstimation
 {
+
 #define DESCRIPTORS (FPFHFeatureDescriptor) \
                     (RIFTFeatureDescriptor) \
                     (RSDFeatureDescriptor) \
@@ -52,8 +54,10 @@ namespace PoseEstimation
 
 
     /**
-     * @brief Configuration of modules for pose estimation pipeline
+     * @brief Configuration of modules for pose estimation pipeline.
      */
+    //TODO the configuration currently does not actually store the parameter
+    // values --> implement additional mapping or devise a new parameter architecture.
     template<class PointT>
     class CF : public PipelineModule
     {
@@ -70,6 +74,12 @@ namespace PoseEstimation
         CF<PointT>& operator=(const CF<PointT>&) & = default;
         CF<PointT>& operator=(CF<PointT>&&) & = default;
 
+        /**
+         * @brief Executes the pose estimation pipeline using the configured modules.
+         * @param source The source point cloud.
+         * @param target The target point cloud.
+         * @return The {@see PipelineStats}.
+         */
         PipelineStats run(PC<PointT> &source, PC<PointT> &target)
         {
             switch (descriptor.value<Enum>().value)
@@ -78,17 +88,18 @@ namespace PoseEstimation
             }
         }
 
-        //TODO implement LRF Estimator module selector (currently useless as there is only BOARD LRF Estimation).
+        //TODO implement LRF Estimator module selector (currently useless as there is
+        // only BOARD LRF Estimation).
         //TODO implement pose refiner module selector (currently not used in the pipeline)
 
         /**
          * @brief Retrieves all parameters of the configured modules.
-         * @return
+         * @return Vector of parameters.
          */
         static std::vector<Parameter*> involvedParameters()
         {
             std::vector<Parameter*> ps;
-
+            _appendParameters(PC<PointT>::argumentCategory.parameters(), ps);
             _appendParameters(_moduleParameters(descriptor), ps);
             _appendParameters(_moduleParameters(downsampler), ps);
             _appendParameters(_moduleParameters(featureMatcher), ps);

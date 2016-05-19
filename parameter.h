@@ -48,7 +48,7 @@ namespace PoseEstimation
     class ParameterCategory;
 
     /**
-     * @brief Abstracts module parameters. Each argument is grouped under a {@see ParameterCategory}
+     * @brief Abstracts module parameters. Each argument is grouped under a {@link ParameterCategory}
      * and has a name, value, and an optional description.
      *
      * From the commandline, arguments can be set using --[category]_[name] [value]
@@ -75,7 +75,7 @@ namespace PoseEstimation
         std::string& description();
 
         /**
-         * @brief The {@see ParameterCategory}.
+         * @brief The {@link ParameterCategory}.
          */
         ParameterCategory category();
 
@@ -208,6 +208,20 @@ namespace PoseEstimation
         static Parameter *get(std::string parseName);
 
         /**
+         * @brief Retrieves all parameters under the given category name.
+         * @param category The name of the category.
+         * @return Parameters that are grouped under the given category.
+         */
+        static std::vector<Parameter*> getAll(const std::string &category);
+
+        /**
+         * @brief Retrieves all parameters under the given pipeline module type.
+         * @param moduleType The pipeline module type.
+         * @return Parameters that are grouped under the given pipeline module type.
+         */
+        static std::vector<Parameter*> getAll(PipelineModuleType::Type moduleType);
+
+        /**
          * @brief Saves all parameters to a JSON file.
          * @param filename The file name of the JSON file.
          * @return Whether the parameters were saved successfully.
@@ -299,7 +313,7 @@ namespace PoseEstimation
 
 
     /**
-     * @brief Category to group {@see ConsoleArgument} of the same module together and provide
+     * @brief Category to group {@link ConsoleArgument} of the same module together and provide
      * a general description of that module in help texts.
      */
     class ParameterCategory
@@ -386,4 +400,11 @@ namespace PoseEstimation
     private:
          const std::string _parameterName;
     };
+
+#define NUMERICAL_PARAMETER_RANGE(min, max) \
+    { \
+        std::make_shared<ConstantConstraint>(ParameterConstraintType::GreaterThanOrEqual, min), \
+        std::make_shared<ConstantConstraint>(ParameterConstraintType::LessThanOrEqual, max) \
+    }
+
 }

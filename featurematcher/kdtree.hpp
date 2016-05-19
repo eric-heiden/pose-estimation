@@ -101,6 +101,7 @@ namespace PoseEstimation
     Parameter KdTreeFeatureMatcher<DescriptorT>::matchThreshold = Parameter(
                 "kdmatch",
                 "thresh",
-                (float)0.15f,
-                "Top percentage of correspondence distances that are considered");
+                (float)0.424f,
+                "Top percentage of correspondence distances that are considered",
+                NUMERICAL_PARAMETER_RANGE(0.1, 1.0));
 }

@@ -19,6 +19,12 @@ namespace PoseEstimation
 
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const
         {
+            if (sampleSize.value<float>() <= 1.0f)
+            {
+                downsampled = pc;
+                return;
+            }
+
             pcl::UniformSampling<PointT> uniform_sampling;
             uniform_sampling.setRadiusSearch(sampleSize.value<float>() * pc.resolution());
             uniform_sampling.setInputCloud(pc.cloud());
@@ -41,6 +47,7 @@ namespace PoseEstimation
     Parameter UniformDownsampler<PointT>::sampleSize = Parameter(
                 "uniformdown",
                 "size",
-                10.0f,
-                "Sample size");
+                1.0f,
+                "Sample size",
+                NUMERICAL_PARAMETER_RANGE(1.0, 10.0));
 }

@@ -4,7 +4,9 @@
 
 namespace PoseEstimation
 {
-    namespace PipelineModuleType {
+    //XXX rewrite using macros (cf. configuration.hpp)?
+    namespace PipelineModuleType
+    {
         /**
          * @brief Enumerates the main components of the Pose Estimation pipeline.
          */
@@ -17,6 +19,7 @@ namespace PoseEstimation
             PoseRefiner,
             TransformationEstimator,
             LocalReferenceFrameEstimator,
+            HypothesisVerifier,
             Miscellaneous
         };
 
@@ -38,6 +41,8 @@ namespace PoseEstimation
                     return "TransformationEstimator";
                 case LocalReferenceFrameEstimator:
                     return "LocalReferenceFrameEstimator";
+                case HypothesisVerifier:
+                    return "HypothesisVerifier";
                 default:
                     return "Miscellaneous";
             }
@@ -60,6 +65,8 @@ namespace PoseEstimation
                 return Type::TransformationEstimator;
             if (s == "localreferenceframeestimator")
                 return Type::LocalReferenceFrameEstimator;
+            if (s == "hypothesisverifier")
+                return Type::HypothesisVerifier;
             return Type::Miscellaneous;
         }
     }

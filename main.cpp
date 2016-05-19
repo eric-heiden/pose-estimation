@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     Parameter::saveAll();
     Parameter::loadAll();
 
-    Visualizer::enabled() = false;
+    //Visualizer::enabled() = false;
 
     if (pcl::console::find_switch(argc, argv, "-h"))
         showHelp(argv[0]);
@@ -66,12 +66,9 @@ int main(int argc, char **argv)
     Configuration config;
     Optimizer opt(source, target);
     opt.optimize(config);
-    //config.run(source, target); //TODO not implemented
 
     // actual pose estimation pipeline
-//    Pipeline<DescriptorType> p;
-//    p.useModule(PipelineModuleType::Downsampler, true);
-//    p.process(source, target);
+    config.run(source, target);
 
     Visualizer::visualize(source);
     Visualizer::visualize(target);

@@ -13,18 +13,31 @@
 #include "logger.h"
 #include "types.h"
 #include "parameter.h"
+#include "pipelinemodule.hpp"
 
 namespace PoseEstimation
 {
     template<typename PointT>
-    class PC
+    class PC : public PipelineModule
     {
     public:
-        PC(const typename pcl::PointCloud<PointT>::Ptr cloud = typename pcl::PointCloud<PointT>::Ptr(new typename pcl::PointCloud<PointT>))
+        PC(const typename pcl::PointCloud<PointT>::Ptr cloud
+           = typename pcl::PointCloud<PointT>::Ptr(new typename pcl::PointCloud<PointT>))
+            : PipelineModule(PipelineModuleType::Miscellaneous)
         {
             _resolution = -1;
             _cloud = cloud;
             _normals = PclNormalCloud::Ptr(new PclNormalCloud);
+        }
+
+        PC(PC<PointT> &pc)
+            : PipelineModule(PipelineModuleType::Miscellaneous),
+              _resolution(pc._resolution)
+        {
+            _cloud = typename pcl::PointCloud<PointT>::Ptr(new typename pcl::PointCloud<PointT>);
+            pcl::copyPointCloud(*(pc._cloud), *_cloud);
+            _normals = PclNormalCloud::Ptr(new PclNormalCloud);
+            pcl::copyPointCloud(*(pc._normals), *_normals);
         }
 
         /**
@@ -202,7 +215,7 @@ namespace PoseEstimation
             std::vector<float> pointNKNSquaredDistance(1);
             for (PointT &targetPoint : targetPoints->points)
             {
-                if (kdtree->nearestKSearchT(targetPoint, 1, pointIdxNKNSearch, pointNKNSquaredDistance) <= 0)
+                if (kdtree->nearestKSearchT(targetPoint, 1, pointIdxNKNSearch, pointNKNSquaredDistance) < 0)
                 {
                     Logger::warning(boost::format("Normal estimation failed for target point %i. " \
                                                   "No matching point could be found in the point cloud.") % idx);
@@ -227,6 +240,8 @@ namespace PoseEstimation
         }
 
         static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
+
         static Parameter normalEstimationRadius;
 
     private:
@@ -261,6 +276,11 @@ namespace PoseEstimation
             {
                 _resolution /= n_points;
             }
+            else
+            {
+                Logger::warning("Point cloud resolution is 0. Setting it to 1.");
+                _resolution = 1.0;
+            }
         }
     };
 
@@ -270,7 +290,9 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter PC<PointT>::normalEstimationRadius = Parameter(
-            "pc", "normal_nn", (float)20.0f, "Search radius of nearest neighbor normal estimation");
+            "pc", "normal_nn", (float)9.725f,
+            "Search radius of nearest neighbor normal estimation",
+            NUMERICAL_PARAMETER_RANGE(3.0, 20.0));
 
     typedef PC<PointType> PointCloud;
     typedef PC<NormalType> NormalCloud;

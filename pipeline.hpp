@@ -12,7 +12,11 @@
 #include "keypointextraction.hpp"
 #include "featurematching.hpp"
 #include "visualizer.h"
+#include "hypothesisverification.hpp"
 
+/**
+ * @brief Namespace for Pose Estimation
+ */
 namespace PoseEstimation
 {
     /**
@@ -20,6 +24,8 @@ namespace PoseEstimation
      */
     struct PipelineStats
     {
+        const size_t MAX_POINTS = 640 * 480; // Kinect's resolution
+
         size_t sourceDownsampledPoints;
         size_t targetDownsampledPoints;
 
@@ -32,11 +38,42 @@ namespace PoseEstimation
         bool transformationSuccessful;
         std::vector<Eigen::Matrix4f> transformationInstances;
 
+        /**
+         * @brief Computes the performance value of the pipeline's outcome.
+         * @return The performance value (the higher the better).
+         */
         double performance()
         {
-            return 0.5 * correspondencesFound
-                    + averageCorrespondenceDistance
+            // actual transformation instances are weighted much higher
+            // so that we not only get a large number of keypoints
+            return 0.01 * (sourceDownsampledPoints / MAX_POINTS)
+                    + 0.01 * (targetDownsampledPoints / MAX_POINTS)
+                    + 0.03 * (sourceKeypointsExtracted / MAX_POINTS)
+                    + 0.03 * (targetKeypointsExtracted / MAX_POINTS)
+                    + 0.5 * correspondencesFound
+                    + (1.0 - averageCorrespondenceDistance / 30000.0)
                     + 3.0 * transformationInstances.size();
+        }
+
+        /**
+         * @brief Prints the statistics in to the logger in DEBUG mode.
+         */
+        void print()
+        {
+            #define _PRINT_PROPERTY(property) \
+            Logger::debug(boost::format("%1%: %2%") % #property % property)
+
+            _PRINT_PROPERTY(sourceDownsampledPoints);
+            _PRINT_PROPERTY(targetDownsampledPoints);
+
+            _PRINT_PROPERTY(sourceKeypointsExtracted);
+            _PRINT_PROPERTY(targetKeypointsExtracted);
+
+            _PRINT_PROPERTY(correspondencesFound);
+            _PRINT_PROPERTY(averageCorrespondenceDistance);
+
+            _PRINT_PROPERTY(transformationSuccessful);
+            _PRINT_PROPERTY(transformationInstances.size());
         }
     };
 
@@ -55,21 +92,20 @@ namespace PoseEstimation
     class Pipeline
     {
     public:
+        /**
+         * @brief Initializes the pipeline without initializing the pipeline modules.
+         */
         Pipeline()
         {
-            // default initialization
-//            _featureDescriptor = std::make_shared<DefaultFeatureDescriptor>(DefaultFeatureDescriptor());
-//            _downsampler = std::make_shared<DefaultDownsampler>(DefaultDownsampler());
-//            _keypointExtractor = std::make_shared<DefaultKeypointExtractor>(DefaultKeypointExtractor());
-//            _transformationEstimator = std::make_shared<DefaultTransformationEstimator>(DefaultTransformationEstimator());
-//            _featureMatcher = std::make_shared<DefaultFeatureMatcher>(DefaultFeatureMatcher());
-
             _usedModules[PipelineModuleType::Downsampler] = true;
             _usedModules[PipelineModuleType::FeatureDescriptor] = true;
             _usedModules[PipelineModuleType::FeatureMatcher] = true;
             _usedModules[PipelineModuleType::KeypointExtractor] = true;
             _usedModules[PipelineModuleType::PoseRefiner] = true;
             _usedModules[PipelineModuleType::TransformationEstimator] = true;
+            _usedModules[PipelineModuleType::HypothesisVerifier] = true;
+
+            _hypothesisVerifier = std::make_shared<HypothesisVerifier<PointT> >();
         }
 
         /**
@@ -123,7 +159,7 @@ namespace PoseEstimation
          * @param target The target point cloud.
          * @return The {@see PipelineStats} of the pipeline run.
          */
-        PipelineStats process(PC<PointT> &source, PC<PointT> &target) const
+        PipelineStats process(PC<PointT> source, PC<PointT> target) const
         {
             typedef typename pcl::PointCloud<DescriptorT> PclDescriptorCloud;
 
@@ -186,7 +222,7 @@ namespace PoseEstimation
             pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
             _featureMatcher->match(source_features, target_features, correspondences);
 
-            for (size_t j = 0; j < correspondences->size(); ++j)
+            for (size_t j = 0; j < std::min(correspondences->size(), (size_t)500); ++j) // limit the number of displayed corrs.
             {
                 PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
                 PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
@@ -194,6 +230,9 @@ namespace PoseEstimation
                 // draw line for each pair of clustered correspondences found between the model and the scene
                 Visualizer::visualize(model_point, scene_point, Color::random());
             }
+
+            stats.averageCorrespondenceDistance = FeatureMatcher<DescriptorT>::averageDistance(correspondences);
+            stats.correspondencesFound = correspondences->size();
 
             // transformation estimation
             Logger::log("Transformation estimation...");
@@ -204,19 +243,23 @@ namespace PoseEstimation
                         source_features, target_features,
                         correspondences, transformations);
             Logger::debug(boost::format("Transformation estimation successfull? %1%") % tes);
+
+            stats.transformationSuccessful = tes;
+            stats.transformationInstances = transformations;
+
             if (tes)
             {
                 Logger::debug(boost::format("Clusters: %1%") % transformations.size());
 
                 if (!transformations.empty())
                 {
-                    for (size_t i = 0; i < transformations.size(); i++)
+                    for (size_t i = 0; i < std::min(transformations.size(), (size_t)80); i++) // limit number of displayed instances
                     {
                         Logger::debug(boost::format("Instance #%1%:\n%2%") % (i+1) % transformations[i]);
                         PointCloud vpc(source);
                         vpc.transform(transformations[i]);
-                        VisualizerObject vpco = Visualizer::visualize(vpc, Color::RED);
-                        vpco.setPointSize(3.0);
+                        VisualizerObject vpco = Visualizer::visualize(vpc, Color::YELLOW);
+                        vpco.setPointSize(2.0);
                     }
                 }
             }
@@ -225,11 +268,32 @@ namespace PoseEstimation
             //TODO implement
 
             // hypothesis verification
-            //TODO implement
+            if (_usedModules.at(PipelineModuleType::HypothesisVerifier) && !transformations.empty())
+            {
+                std::vector<bool> mask = _hypothesisVerifier->verify(source, target, transformations);
+                size_t hvc = 0;
+                for (size_t i = 0; i < transformations.size() && hvc < 5; i++) // limit number of displayed instances
+                {
+                    if (!mask[i])
+                        continue;
+
+                    Logger::debug(boost::format("Valid hypothesis #%1%:\n%2%") % (i+1) % transformations[i]);
+                    PointCloud vpc(source);
+                    vpc.transform(transformations[i]);
+                    VisualizerObject vpco = Visualizer::visualize(vpc, Color::GREEN);
+                    vpco.setPointSize(3.0);
+                    ++hvc;
+                }
+            }
 
             return stats;
         }
 
+        /**
+         * @brief Specifies whether the selected module shall be used in the pipeline.
+         * @param module Type of the pipeline module.
+         * @param status Whether the selected module is activated.
+         */
         void useModule(PipelineModuleType::Type module, bool status)
         {
             _usedModules[module] = status;
@@ -242,6 +306,8 @@ namespace PoseEstimation
         std::shared_ptr<KeypointExtractor<PointT> > _keypointExtractor;
         std::shared_ptr<TransformationEstimator<PointT, DescriptorT> > _transformationEstimator;
         std::shared_ptr<FeatureMatcher<DescriptorT> > _featureMatcher;
+
+        std::shared_ptr<HypothesisVerifier<PointT> > _hypothesisVerifier;
 
         std::map<PipelineModuleType::Type, bool> _usedModules;
     };

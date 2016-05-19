@@ -65,13 +65,15 @@ namespace PoseEstimation
     Parameter GeometricConsistency<PointT, DescriptorT>::resolution = Parameter(
             "gc",
             "resolution",
-            5.0f,
-            "Consensus set resolution");
+            3.6f,
+            "Consensus set resolution",
+            NUMERICAL_PARAMETER_RANGE(1.0, 10.0));
 
     template<typename PointT, typename DescriptorT>
     Parameter GeometricConsistency<PointT, DescriptorT>::threshold = Parameter(
             "gc",
             "thresh",
-            5.0f,
-            "Minimum cluster size");
+            1.26f,
+            "Minimum cluster size",
+            NUMERICAL_PARAMETER_RANGE(0.1, 1.0));
 }

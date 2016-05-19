@@ -48,6 +48,6 @@ namespace PoseEstimation
     Parameter UniformKeypointExtractor<PointT>::searchRadius = Parameter(
                 "uniform",
                 "r",
-                15.0f,
+                3.294f,
                 "Search radius for the uniform keypoint extraction");
 }

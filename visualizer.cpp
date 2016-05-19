@@ -74,11 +74,11 @@ Visualizer::Visualizer(const std::string &title) : _title(title)
 {
 }
 
-std::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::viewer()
+pcl::visualization::PCLVisualizer *Visualizer::viewer()
 {
     if (!_viewer)
     {
-        _viewer = std::make_shared<pcl::visualization::PCLVisualizer>(
+        _viewer = new pcl::visualization::PCLVisualizer(
                     pcl::visualization::PCLVisualizer(_title));
         _viewer->setBackgroundColor(1, 1, 1);
     }

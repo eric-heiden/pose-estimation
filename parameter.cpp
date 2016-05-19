@@ -258,6 +258,34 @@ Parameter *Parameter::get(std::string parseName)
     return _allArgs[parseName];
 }
 
+std::vector<Parameter *> Parameter::getAll(const std::string &category)
+{
+    if (_categorized.find(category) == _categorized.end())
+    {
+        Logger::warning(boost::format("Category \"%s\" was not found.") % category);
+        return std::vector<Parameter*>();
+    }
+    return _categorized[category];
+}
+
+std::vector<Parameter *> Parameter::getAll(PipelineModuleType::Type moduleType)
+{
+    std::vector<Parameter*> r;
+    if (_modules.find(moduleType) == _modules.end())
+    {
+        Logger::warning(boost::format("No parameters for module type %1% were found.") % moduleType);
+        return r;
+    }
+
+    for (std::string &category : _modules[moduleType])
+    {
+        std::vector<Parameter*> parameters = getAll(category);
+        r.insert(r.end(), parameters.begin(), parameters.end());
+    }
+
+    return r;
+}
+
 
 void _set_json_arg_value(Json &jarg, SupportedValue &value)
 {
@@ -390,6 +418,7 @@ int Parameter::_parse(int argc, char *argv[])
 void Parameter::_defineCategory(const std::string &name, const std::string &description,
                                 PipelineModuleType::Type moduleType)
 {
+    Logger::debug(boost::format("Defining parameter category %s...") % name);
     _categories[name] = description;
     if (_modules.find(moduleType) == _modules.end())
         _modules[moduleType] = std::vector<std::string>();
@@ -413,7 +442,7 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
                        name) == _modules[moduleType].end())
     {
         _modules[moduleType].push_back(name);
-        //Logger::debug(boost::format("Category %s has been defined.") % name);
+        Logger::debug(boost::format("Category %s has been defined.") % name);
     }
 }
 
@@ -435,12 +464,7 @@ ParameterCategory::ParameterCategory(const ParameterCategory &category)
 
 std::vector<Parameter*> ParameterCategory::parameters() const
 {
-    if (Parameter::_categorized.find(_name) == Parameter::_categorized.end())
-    {
-        Logger::warning(boost::format("Category \"%s\" was not found.") % _name);
-        return std::vector<Parameter*>();
-    }
-    return Parameter::_categorized[_name];
+    return Parameter::getAll(_name);
 }
 
 std::string ParameterCategory::name() const
@@ -463,8 +487,6 @@ EnumParameter::EnumParameter(const std::string &category, const std::string &nam
                              std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints)
     : Parameter(category, name, Enum::define(value), description, constraints)
 {
-    std::cout << std::endl << std::endl << std::endl;
-    std::cout << _value.which() << std::endl;
 }
 
 EnumParameter::EnumParameter(const std::string &category, const std::string &name,

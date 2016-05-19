@@ -19,6 +19,12 @@ namespace PoseEstimation
 
         virtual void downsample(PC<PointT> &pc, PC<PointT> &downsampled) const
         {
+            if (voxelSize.value<float>() == 1.0f)
+            {
+                downsampled = pc;
+                return;
+            }
+
             pcl::ApproximateVoxelGrid<PointT> approximate_voxel_filter;
             float sample_size = voxelSize.value<float>() * pc.resolution();
             approximate_voxel_filter.setLeafSize(sample_size, sample_size, sample_size);
@@ -43,5 +49,6 @@ namespace PoseEstimation
                 "voxelgrid",
                 "size",
                 3.0f,
-                "Leaf size of the voxel grid");
+                "Leaf size of the voxel grid",
+                NUMERICAL_PARAMETER_RANGE(1.0, 10.0));
 }

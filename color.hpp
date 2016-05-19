@@ -25,6 +25,12 @@ namespace PoseEstimation
         static const Color GREEN;
         __attribute__((weak))
         static const Color BLUE;
+        __attribute__((weak))
+        static const Color YELLOW;
+        __attribute__((weak))
+        static const Color MAGENTA;
+        __attribute__((weak))
+        static const Color CYAN;
 
         static inline Color fromRGB(double r, double g, double b)
         {
@@ -63,4 +69,7 @@ namespace PoseEstimation
     const Color Color::RED(1, 0, 0);
     const Color Color::GREEN(0, 1, 0);
     const Color Color::BLUE(0, 0, 1);
+    const Color Color::YELLOW(1, 1, 0);
+    const Color Color::MAGENTA(0, 1, 1);
+    const Color Color::CYAN(1, 0, 1);
 }

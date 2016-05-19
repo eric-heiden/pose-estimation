@@ -54,7 +54,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter FPFHFeatureDescriptor<PointT>::searchRadius(
-            "FPFH", "search_r", (float)20.0f,
+            "FPFH", "search_r", (float)33.41f,
             "Search radius for finding neighbors",
             { std::make_shared<VariableConstraint>(
               ParameterConstraintType::GreaterThan, "pc_normal_nn")

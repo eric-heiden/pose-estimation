@@ -37,8 +37,8 @@ namespace PoseEstimation
         Visualizer(const std::string &title = VISUALIZATION_NAME);
         const std::string _title;
         static Visualizer _instance;
-        std::shared_ptr<pcl::visualization::PCLVisualizer> _viewer;
-        std::shared_ptr<pcl::visualization::PCLVisualizer> viewer();
+        pcl::visualization::PCLVisualizer *_viewer;
+        pcl::visualization::PCLVisualizer *viewer();
         static unsigned int _obj_counter;
 
         static bool _enabled;
