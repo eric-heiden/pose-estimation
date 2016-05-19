@@ -5,7 +5,8 @@ This project features an object recognition pipeline to recognize and localize o
 * Feature description
 * Keypoint extraction
 * Transformation estimation
-* Pose refinement,
+* Pose refinement
+* Hypothesis verification,
 
 the project aims at providing an experimentation platform that allows for fast evaluation of different 3d recognition methods.
 
