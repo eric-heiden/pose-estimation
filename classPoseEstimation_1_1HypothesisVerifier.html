@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.6"/>
-<title>Pose Estimation: PoseEstimation::PoseRefiner&lt; PointT &gt; Class Template Reference</title>
+<title>Pose Estimation: PoseEstimation::HypothesisVerifier&lt; PointT &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,39 +83,38 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacePoseEstimation.html">PoseEstimation</a></li><li class="navelem"><a class="el" href="classPoseEstimation_1_1PoseRefiner.html">PoseRefiner</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacePoseEstimation.html">PoseEstimation</a></li><li class="navelem"><a class="el" href="classPoseEstimation_1_1HypothesisVerifier.html">HypothesisVerifier</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="classPoseEstimation_1_1PoseRefiner-members.html">List of all members</a>  </div>
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="classPoseEstimation_1_1HypothesisVerifier-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">PoseEstimation::PoseRefiner&lt; PointT &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">PoseEstimation::HypothesisVerifier&lt; PointT &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Abstract module for registering two point clouds.  
- <a href="classPoseEstimation_1_1PoseRefiner.html#details">More...</a></p>
+<p>Global Hypothesis Verification.  
+ <a href="classPoseEstimation_1_1HypothesisVerifier.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="poserefinement_8hpp_source.html">poserefinement.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="hypothesisverification_8hpp_source.html">hypothesisverification.hpp</a>&gt;</code></p>
 <div class="dynheader">
-Inheritance diagram for PoseEstimation::PoseRefiner&lt; PointT &gt;:</div>
+Inheritance diagram for PoseEstimation::HypothesisVerifier&lt; PointT &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classPoseEstimation_1_1PoseRefiner.png" usemap="#PoseEstimation::PoseRefiner&lt; PointT &gt;_map" alt=""/>
-  <map id="PoseEstimation::PoseRefiner&lt; PointT &gt;_map" name="PoseEstimation::PoseRefiner&lt; PointT &gt;_map">
-<area href="classPoseEstimation_1_1PipelineModule.html" title="Abstract class that generalizes a module in the Pose Estimation pipeline. " alt="PoseEstimation::PipelineModule" shape="rect" coords="132,0,387,24"/>
-<area href="classPoseEstimation_1_1ICPPoseRefiner.html" title="Pose refinement using Iterative Closest Point (ICP). " alt="PoseEstimation::ICPPoseRefiner&lt; PointT &gt;" shape="rect" coords="0,112,255,136"/>
-<area href="classPoseEstimation_1_1NDTPoseRefiner.html" title="Pose refinement using Normal Distributions Transform (NDT). " alt="PoseEstimation::NDTPoseRefiner&lt; PointT &gt;" shape="rect" coords="265,112,520,136"/>
+  <img src="classPoseEstimation_1_1HypothesisVerifier.png" usemap="#PoseEstimation::HypothesisVerifier&lt; PointT &gt;_map" alt=""/>
+  <map id="PoseEstimation::HypothesisVerifier&lt; PointT &gt;_map" name="PoseEstimation::HypothesisVerifier&lt; PointT &gt;_map">
+<area href="classPoseEstimation_1_1PipelineModule.html" title="Abstract class that generalizes a module in the Pose Estimation pipeline. " alt="PoseEstimation::PipelineModule" shape="rect" coords="0,0,266,24"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a895df478d0bab53a449b39169d2bd67c"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPoseEstimation_1_1PoseRefiner.html#a895df478d0bab53a449b39169d2bd67c">refine</a> (const <a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;source, const <a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;target, <a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;out, Eigen::Matrix4f &amp;transformation)=0</td></tr>
-<tr class="memdesc:a895df478d0bab53a449b39169d2bd67c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Align the source point cloud to the target point cloud.  <a href="#a895df478d0bab53a449b39169d2bd67c">More...</a><br/></td></tr>
-<tr class="separator:a895df478d0bab53a449b39169d2bd67c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a868fa4f8d7d6495c7b3b0c8fe2eb0317"><td class="memItemLeft" align="right" valign="top">std::vector&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPoseEstimation_1_1HypothesisVerifier.html#a868fa4f8d7d6495c7b3b0c8fe2eb0317">verify</a> (<a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;source, <a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;target, std::vector&lt; Eigen::Matrix4f &gt; &amp;transformations)</td></tr>
+<tr class="memdesc:a868fa4f8d7d6495c7b3b0c8fe2eb0317"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies the given transformation candidates to reduce the number of false positives.  <a href="#a868fa4f8d7d6495c7b3b0c8fe2eb0317">More...</a><br/></td></tr>
+<tr class="separator:a868fa4f8d7d6495c7b3b0c8fe2eb0317"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classPoseEstimation_1_1PipelineModule"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classPoseEstimation_1_1PipelineModule')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classPoseEstimation_1_1PipelineModule.html">PoseEstimation::PipelineModule</a></td></tr>
 <tr class="memitem:a3bedcb15d1c926274e4afe961e2db0d2 inherit pub_methods_classPoseEstimation_1_1PipelineModule"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3bedcb15d1c926274e4afe961e2db0d2"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>PipelineModule</b> (PipelineModuleType::Type t)</td></tr>
@@ -141,14 +140,41 @@ PipelineModuleType::Type&#160;</td><td class="memItemRight" valign="bottom"><b>t
 <tr class="memitem:a48c5449f21271f1e959a7e6b9b1b3679 inherit pub_methods_classPoseEstimation_1_1PipelineModule"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a48c5449f21271f1e959a7e6b9b1b3679"></a>
 <a class="el" href="classPoseEstimation_1_1PipelineModule.html">PipelineModule</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classPoseEstimation_1_1PipelineModule.html">PipelineModule</a> &amp;&amp;p)</td></tr>
 <tr class="separator:a48c5449f21271f1e959a7e6b9b1b3679 inherit pub_methods_classPoseEstimation_1_1PipelineModule"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a60c09d6c7dce5918bf1bda15cf75eb3d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a60c09d6c7dce5918bf1bda15cf75eb3d"></a>
+static <a class="el" href="classPoseEstimation_1_1ParameterCategory.html">ParameterCategory</a>&#160;</td><td class="memItemRight" valign="bottom"><b>argumentCategory</b></td></tr>
+<tr class="separator:a60c09d6c7dce5918bf1bda15cf75eb3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09a8899fd23bec08d69a0e1b205b856f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a09a8899fd23bec08d69a0e1b205b856f"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>inlierThreshold</b></td></tr>
+<tr class="separator:a09a8899fd23bec08d69a0e1b205b856f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ea5d4747bfb010612f01a78ca2bb62e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ea5d4747bfb010612f01a78ca2bb62e"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>occlusionThreshold</b></td></tr>
+<tr class="separator:a9ea5d4747bfb010612f01a78ca2bb62e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d2062a0c33ef8c60a6b03ba4f3cf8fe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d2062a0c33ef8c60a6b03ba4f3cf8fe"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>regularizer</b></td></tr>
+<tr class="separator:a7d2062a0c33ef8c60a6b03ba4f3cf8fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99e56b201b138e83578857114eef7a38"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a99e56b201b138e83578857114eef7a38"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>clutterRadius</b></td></tr>
+<tr class="separator:a99e56b201b138e83578857114eef7a38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76d158070773445d3d5e6e52dec0014f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76d158070773445d3d5e6e52dec0014f"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>clutterRegularizer</b></td></tr>
+<tr class="separator:a76d158070773445d3d5e6e52dec0014f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59e849b672d7ab371e0b67a5dc2434cb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a59e849b672d7ab371e0b67a5dc2434cb"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>clutterDetection</b></td></tr>
+<tr class="separator:a59e849b672d7ab371e0b67a5dc2434cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02e9670363370de9f45b1f907971e398"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a02e9670363370de9f45b1f907971e398"></a>
+static <a class="el" href="classPoseEstimation_1_1Parameter.html">Parameter</a>&#160;</td><td class="memItemRight" valign="bottom"><b>normalEstimationRadius</b></td></tr>
+<tr class="separator:a02e9670363370de9f45b1f907971e398"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename PointT&gt;<br/>
-class PoseEstimation::PoseRefiner&lt; PointT &gt;</h3>
+class PoseEstimation::HypothesisVerifier&lt; PointT &gt;</h3>
 
-<p>Abstract module for registering two point clouds. </p>
+<p>Global Hypothesis Verification. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a895df478d0bab53a449b39169d2bd67c"></a>
+<a class="anchor" id="a868fa4f8d7d6495c7b3b0c8fe2eb0317"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -158,28 +184,22 @@ template&lt;typename PointT &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual bool <a class="el" href="classPoseEstimation_1_1PoseRefiner.html">PoseEstimation::PoseRefiner</a>&lt; PointT &gt;::refine </td>
+          <td class="memname">std::vector&lt;bool&gt; <a class="el" href="classPoseEstimation_1_1HypothesisVerifier.html">PoseEstimation::HypothesisVerifier</a>&lt; PointT &gt;::verify </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;&#160;</td>
           <td class="paramname"><em>source</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;&#160;</td>
           <td class="paramname"><em>target</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classPoseEstimation_1_1PC.html">PC</a>&lt; PointT &gt; &amp;&#160;</td>
-          <td class="paramname"><em>out</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Eigen::Matrix4f &amp;&#160;</td>
-          <td class="paramname"><em>transformation</em>&#160;</td>
+          <td class="paramtype">std::vector&lt; Eigen::Matrix4f &gt; &amp;&#160;</td>
+          <td class="paramname"><em>transformations</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -189,29 +209,26 @@ template&lt;typename PointT &gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Align the source point cloud to the target point cloud. </p>
+<p>Verifies the given transformation candidates to reduce the number of false positives. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">source</td><td>Point cloud to be aligned. </td></tr>
-    <tr><td class="paramname">target</td><td>Point cloud to be aligned to. </td></tr>
-    <tr><td class="paramname">out</td><td>Transformed input point cloud. </td></tr>
-    <tr><td class="paramname">transformation</td><td>Final rigid transformation that aligns source cloud to target. </td></tr>
+    <tr><td class="paramname">source</td><td>The point cloud of the object. </td></tr>
+    <tr><td class="paramname">source</td><td>The point cloud of the scene. </td></tr>
+    <tr><td class="paramname">transformations</td><td>The hypotheses. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Whether the refinement process has converged. </dd></dl>
-
-<p>Implemented in <a class="el" href="classPoseEstimation_1_1ICPPoseRefiner.html#a36a412f26fc5ebae04b83a975555dbd2">PoseEstimation::ICPPoseRefiner&lt; PointT &gt;</a>, and <a class="el" href="classPoseEstimation_1_1NDTPoseRefiner.html#ac795f50aeef194df0e93480966b7b4fc">PoseEstimation::NDTPoseRefiner&lt; PointT &gt;</a>.</p>
+<dl class="section return"><dt>Returns</dt><dd>Mask vector determining for each transformation whether it fulfills the hypothesis test. </dd></dl>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li><a class="el" href="poserefinement_8hpp_source.html">poserefinement.hpp</a></li>
+<li><a class="el" href="hypothesisverification_8hpp_source.html">hypothesisverification.hpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

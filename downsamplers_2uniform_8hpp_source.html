@@ -109,7 +109,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> downsample(<a class="code" href="classPoseEstimation_1_1PC.html">PC&lt;PointT&gt;</a> &amp;pc, <a class="code" href="classPoseEstimation_1_1PC.html">PC&lt;PointT&gt;</a> &amp;downsampled)<span class="keyword"> const</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;            <span class="keywordflow">if</span> (sampleSize.<a class="code" href="classPoseEstimation_1_1Parameter.html#a7ebeb4bd9672dc99a19c10ae813f52d3">value</a>&lt;<span class="keywordtype">float</span>&gt;() == 1.0f)</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;            <span class="keywordflow">if</span> (sampleSize.<a class="code" href="classPoseEstimation_1_1Parameter.html#a7ebeb4bd9672dc99a19c10ae813f52d3">value</a>&lt;<span class="keywordtype">float</span>&gt;() &lt;= 1.0f)</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;            {</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;                downsampled = pc;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;                <span class="keywordflow">return</span>;</div>
@@ -153,7 +153,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 18 2016 21:22:11 for Pose Estimation by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 18 2016 23:44:54 for Pose Estimation by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>
