@@ -5,7 +5,8 @@ This project features an object recognition pipeline to recognize and localize o
 * Feature description
 * Keypoint extraction
 * Transformation estimation
-* Pose refinement,
+* Pose refinement
+* Hypothesis verification,
 
 the project aims at providing an experimentation platform that allows for fast evaluation of different 3d recognition methods.
 
@@ -14,5 +15,6 @@ the project aims at providing an experimentation platform that allows for fast e
 * CMake >=3.1
 * GCC >=4.9
 * BOOST ~1.54
+* NLopt
 
 Additionally, for Unit Testing, CppUnit is required.
