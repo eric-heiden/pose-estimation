@@ -30,7 +30,6 @@ int main(int argc, char **argv)
     Parameter::parseAll(argc, argv);
 
     Configuration::argumentCategory.parameters();
-    Parameter::saveAll();
     Parameter::loadAll();
 
     Visualizer::enabled() = false;
@@ -69,6 +68,7 @@ int main(int argc, char **argv)
 
     Optimizer opt(source, target);
     OptimizationResult res = opt.optimize(config);
+    Parameter::saveAll("optimal_configuration.json"); // save optimal configuration
 
     for (auto &assignment : res.bestAssignment)
     {

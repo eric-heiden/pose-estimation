@@ -182,10 +182,16 @@ namespace PoseEstimation
 
                 ne.setRadiusSearch(resolution() * normalEstimationRadius.value<float>());
                 float radius = resolution() * normalEstimationRadius.value<float>();
+                _normals = PclNormalCloud::Ptr(new PclNormalCloud);
+                if (std::abs(radius) <= std::numeric_limits<float>::epsilon())
+                {
+                    Logger::warning("Cannot estimate normals using a radius of zero.");
+                    return _normals;
+                }
+
                 Logger::debug(boost::format("Normal estimation using r = %1%") % radius);
                 ne.setInputCloud(_cloud);
 
-                _normals = PclNormalCloud::Ptr(new PclNormalCloud);
                 ne.compute(*_normals);
 
                 //TODO Faster normal computation possible using Integral Images for organized point clouds...
@@ -205,6 +211,12 @@ namespace PoseEstimation
         PclNormalCloud::Ptr normals(const PclPointCloud::Ptr &targetPoints)
         {
             PclNormalCloud::Ptr ns = normals();
+            if (ns->empty())
+            {
+                Logger::warning("No normals could be computed.");
+                return ns;
+            }
+
             PclNormalCloud::Ptr targetNormals(new PclNormalCloud);
 
             // accelerate search for equal points using an Kd tree

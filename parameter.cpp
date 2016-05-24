@@ -379,28 +379,32 @@ bool Parameter::loadAll(const std::string &filename)
     for (auto &module : j["configuration"])
     {
         Logger::debug(boost::format("Found module %s.") % module["module"]);
-        auto mtype = PipelineModuleType::parse(module["module"]);
+        auto mtype = PipelineModuleType::parse(module["module"].get<std::string>());
         for (auto &category : module["categories"])
         {
             // create category / module if it doesn't exist
-            _defineCategory(category["name"], category["description"], mtype);
+            _defineCategory(category["name"].get<std::string>(), category["description"].get<std::string>(), mtype);
 
             for (auto &parameter : category["parameters"])
             {
                 // handle Enum parameter
-                std::string id = (boost::format("%s_%s") % category["name"] % parameter["name"]).str();
+                std::string id = (boost::format("%s_%s") % category["name"].get<std::string>() % parameter["name"].get<std::string>()).str();
+
                 Parameter *p = Parameter::get(id);
                 if (!p)
+                {
+                    Logger::debug("not found");
                     continue;
+                }
 
                 if (p->_value.type() == typeid(Enum))
-                    p->value<Enum>().set(parameter["value"].dump());
+                    p->value<Enum>().set(parameter["value"].get<std::string>());
                 else if (p->_value.type() == typeid(int))
                     p->_value = (int)parameter["value"];
                 else if (p->_value.type() == typeid(float))
                     p->_value = (float)parameter["value"];
                 else if (p->_value.type() == typeid(std::string))
-                    p->_value = parameter["value"].dump();
+                    p->_value = parameter["value"].get<std::string>();
                 else if (p->_value.type() == typeid(bool))
                     p->_value = (bool)parameter["value"];
             }

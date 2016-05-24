@@ -112,7 +112,7 @@ namespace PoseEstimation
         /**
          * @brief Maximum number of descriptors.
          */
-        static const size_t MAX_DESCRIPTORS = 20000;
+        static const size_t MAX_DESCRIPTORS = 100000;
 
         /**
          * @brief Initializes the pipeline without initializing the pipeline modules.
@@ -238,6 +238,12 @@ namespace PoseEstimation
             PclNormalCloud::Ptr source_keypoint_normals = source.normals(source_keypoints);
             PclNormalCloud::Ptr target_keypoint_normals = target.normals(target_keypoints);
 
+            if (source_keypoint_normals->empty() || target_keypoint_normals->empty())
+            {
+                Logger::warning("Normal clouds are empty. Stopping pipeline.");
+                return stats;
+            }
+
             // visualize keypoints
             PointCloud skp(source_keypoints);
             VisualizerObject vo = Visualizer::visualize(skp, Color::BLUE);
@@ -287,13 +293,13 @@ namespace PoseEstimation
                         correspondences, transformations);
             Logger::debug(boost::format("Transformation estimation successfull? %1%") % tes);
 
-            _removeDuplicates(transformations);
 
             stats.transformationSuccessful = tes;
             stats.transformationInstances = transformations;
+            _removeDuplicates(transformations);
 
             if (tes)
-            {
+            {                
                 Logger::debug(boost::format("Clusters: %1%") % transformations.size());
 
                 if (!transformations.empty())

@@ -55,7 +55,7 @@ namespace PoseEstimation
 
             const size_t dimensions = _objective.parameters.size();
 
-            nlopt::opt opt(nlopt::LN_COBYLA, dimensions); // "LN" means local optimization, no derivatives
+            nlopt::opt opt(nlopt::LN_BOBYQA, dimensions); // "LN" means local optimization, no derivatives
 
             _objective.lowerBounds = std::vector<double>(dimensions);
             _objective.upperBounds = std::vector<double>(dimensions);
