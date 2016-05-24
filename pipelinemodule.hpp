@@ -36,10 +36,12 @@ namespace PoseEstimation
             return _type;
         }
 
-        PipelineModule& operator=(const PipelineModule& p)
+        // does nothing, since _type is constant
+        PipelineModule& operator=(const PipelineModule&)
         {}
 
-        PipelineModule& operator=(PipelineModule&& p)
+        // does nothing, since _type is constant
+        PipelineModule& operator=(PipelineModule&&)
         {}
 
     private:
@@ -49,7 +51,6 @@ namespace PoseEstimation
 #define PARAMETER_CATEGORY_GETTER(category) \
     virtual ParameterCategory parameterCategory() const \
     { \
-        Logger::debug("Overloaded parameter category gets called"); \
         return category; \
     }
 }

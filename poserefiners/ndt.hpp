@@ -12,14 +12,14 @@ namespace PoseEstimation
      * @brief Pose refinement using Normal Distributions Transform (NDT).
      */
     template<typename PointT>
-    class NDTPoseRefiner : PoseRefiner<PointT>
+    class NDTPoseRefiner : public PoseRefiner<PointT>
     {
     public:
         NDTPoseRefiner() : PoseRefiner<PointT>()
         {
         }
 
-        virtual bool refine(const PC<PointT> &source, const PC<PointT> &target,
+        virtual bool refine(PC<PointT> &source, PC<PointT> &target,
                             PC<PointT> &out, Eigen::Matrix4f &transformation)
         {
             pcl::NormalDistributionsTransform<PointT, PointT> ndt;

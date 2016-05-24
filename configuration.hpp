@@ -28,6 +28,11 @@
 #include "transformationestimators/ransac.hpp"
 #include "transformationestimators/svd.hpp"
 
+#include "poserefiners/icp.hpp"
+#include "poserefiners/ndt.hpp"
+
+#include "hypothesisverification.hpp"
+
 namespace PoseEstimation
 {
 
@@ -56,8 +61,6 @@ namespace PoseEstimation
     /**
      * @brief Configuration of modules for pose estimation pipeline.
      */
-    //TODO the configuration currently does not actually store the parameter
-    // values --> implement additional mapping or devise a new parameter architecture.
     template<class PointT>
     class CF : public PipelineModule
     {
@@ -90,7 +93,6 @@ namespace PoseEstimation
 
         //TODO implement LRF Estimator module selector (currently useless as there is
         // only BOARD LRF Estimation).
-        //TODO implement pose refiner module selector (currently not used in the pipeline)
 
         /**
          * @brief Retrieves all parameters of the configured modules.
@@ -100,6 +102,15 @@ namespace PoseEstimation
         {
             std::vector<Parameter*> ps;
             _appendParameters(PC<PointT>::argumentCategory.parameters(), ps);
+            _appendParameters(HypothesisVerifier<PointT>::argumentCategory.parameters(), ps);
+
+            //TODO resolve inter-module parameter dependencies at the module definition
+            if (transformationEstimator.value<Enum>().value == 1)
+            {
+                // Hough 3d voting uses BOARD LRF estimation
+                _appendParameters(BOARDLocalReferenceFrameEstimator<PointT>::argumentCategory.parameters(), ps);
+            }
+
             _appendParameters(_moduleParameters(descriptor), ps);
             _appendParameters(_moduleParameters(downsampler), ps);
             _appendParameters(_moduleParameters(featureMatcher), ps);
@@ -107,6 +118,16 @@ namespace PoseEstimation
             _appendParameters(_moduleParameters(transformationEstimator), ps);
 
             return ps;
+        }
+
+        /**
+         * @brief Specifies whether the selected module shall be used in the pipeline.
+         * @param module Type of the pipeline module.
+         * @param status Whether the selected module is activated.
+         */
+        static void useModule(PipelineModuleType::Type module, bool status)
+        {
+            _usedModules[module] = status;
         }
 
         static ParameterCategory argumentCategory;
@@ -117,8 +138,11 @@ namespace PoseEstimation
         static EnumParameter featureMatcher;
         static EnumParameter keypointExtractor;
         static EnumParameter transformationEstimator;
+        static EnumParameter poseRefiner;
 
     private:
+        static std::map<PipelineModuleType::Type, bool> _usedModules;
+
         static void _appendParameters(const std::vector<Parameter*> &source,
                                       std::vector<Parameter*> &target)
         {
@@ -135,6 +159,11 @@ namespace PoseEstimation
                                   typename std::shared_ptr<FeatureDescriptor<PointT, DescriptorT> > &descriptor)
         {
             Pipeline<DescriptorT, PointT> pipeline;
+            for (auto &used : _usedModules)
+            {
+                pipeline.useModule(used.first, used.second);
+            }
+
             pipeline.featureDescriptor() = descriptor;
 
             switch (downsampler.value<Enum>().value)
@@ -176,6 +205,15 @@ namespace PoseEstimation
                     pipeline.transformationEstimator() = std::make_shared<GeometricConsistency<PointT, DescriptorT> >();
             }
 
+            switch (poseRefiner.value<Enum>().value)
+            {
+                case 1:
+                    pipeline.poseRefiner() = std::make_shared<NDTPoseRefiner<PointT> >();
+                    break;
+                default:
+                    pipeline.poseRefiner() = std::make_shared<ICPPoseRefiner<PointT> >();
+            }
+
             return pipeline.process(source, target);
         }
     };
@@ -215,6 +253,14 @@ namespace PoseEstimation
             { "gc", "hough", "ransac", "svd" },
             "Transformation estimator module");
 
+    template<typename PointT>
+    EnumParameter CF<PointT>::poseRefiner = EnumParameter(
+            "config", "poserefiner",
+            { "icp", "ndt" },
+            "Iterative pose refinement module");
+
+    template<typename PointT>
+    std::map<PipelineModuleType::Type, bool> CF<PointT>::_usedModules = std::map<PipelineModuleType::Type, bool>();
 
     typedef CF<PointType> Configuration;
 }

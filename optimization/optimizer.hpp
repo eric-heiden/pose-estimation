@@ -16,6 +16,7 @@ namespace PoseEstimation
         double bestPerformance;
         Assignment bestAssignment;
         nlopt::result resultCode;
+        PipelineStats bestStats;
     };
 
     /**
@@ -40,7 +41,8 @@ namespace PoseEstimation
         OptimizationResult optimize(CF<PointT> config)
         {
             _objective.parameters.clear();
-            Objective::iteration = 0;
+            _objective.bestPerformance = 0;
+            _objective.iteration = 0;
 
             // only consider numerical parameters
             for (Parameter *p : config.involvedParameters())
@@ -59,7 +61,7 @@ namespace PoseEstimation
             _objective.upperBounds = std::vector<double>(dimensions);
             for (size_t i = 0; i < dimensions; ++i)
             {
-                // temporarely, non-linear optimization might pass the boundaries
+                // temporarily, non-linear optimization might pass the boundaries
                 _objective.lowerBounds[i] = _objective.parameters[i]->lowerBound();
                 _objective.upperBounds[i] = _objective.parameters[i]->upperBound();
             }
@@ -67,7 +69,8 @@ namespace PoseEstimation
             opt.set_min_objective(Objective::wrap, &_objective);
 
             opt.set_xtol_rel(-1.0); // deactivate relative tolerance stopping criterion
-            opt.set_maxeval(25);    // stop after so many iterations
+            opt.set_xtol_abs(0.5);  // stop when an optimization step changes all parameters by less than this value
+            opt.set_maxeval(30);    // stop after so many iterations
 
             std::vector<double> x(dimensions);
             Logger::debug("Initializing variables");
@@ -82,8 +85,12 @@ namespace PoseEstimation
             nlopt::result result = opt.optimize(x, minf);
             if (result > 0)
             {
-                Logger::log(boost::format("Optimization finished successfully. Performance: %d. Stopping criterion: %i")
+                Logger::log(boost::format("Optimization finished successfully. Best performance: %d. Stopping criterion: %i")
                             % (-minf) % result);
+                for (auto &assignment : _objective.bestAssignment)
+                {
+                    Logger::debug(boost::format("\t%s = %d") % assignment.first % assignment.second);
+                }
             }
             else
             {
@@ -91,8 +98,21 @@ namespace PoseEstimation
                                 % (-minf) % result);
             }
 
-            return -minf;
+            OptimizationResult optres;
+            optres.bestPerformance = _objective.bestPerformance;
+            optres.bestAssignment = _objective.bestAssignment;
+            optres.bestStats = _objective.bestStats;
+            optres.resultCode = result;
+
+            return optres;
         }
+
+        OPT() = default;
+        OPT(OPT<PointT> &) = default;
+        OPT(OPT<PointT> &&) = default;
+
+        OPT<PointT>& operator=(const OPT<PointT>&) & = default;
+        OPT<PointT>& operator=(OPT<PointT>&&) & = default;
 
     private:
         /**
@@ -133,11 +153,22 @@ namespace PoseEstimation
 
                     // compute performance
                     double p = stats.performance();
+                    if (p > bestPerformance)
+                    {
+                        // store best assignment
+                        for (size_t i = 0; i < parameters.size(); ++i)
+                        {
+                            bestAssignment[parameters[i]->parseName()] = x[i];
+                        }
+
+                        bestStats = stats;
+                    }
+
                     Logger::debug("+++ Detailed Performance Report +++");
                     stats.print();
                     Logger::log(boost::format("##### Finished Iteration %i. Performance: %d #####")
                                 % iteration % p);
-                    return -p; // maximize performance, i.e. minimize -performance
+                    return -p; // maximize performance, i.e. minimize -p
                 }
 
                 /**
@@ -157,27 +188,16 @@ namespace PoseEstimation
                 CF<PointT> configuration;
                 std::vector<Parameter*> parameters;
 
-                static size_t iteration;
-                static std::vector<double> lowerBounds;
-                static std::vector<double> upperBounds;
-                static Assignment bestAssignment; //TODO implement
-                static double bestPerformance;
+                size_t iteration;
+                std::vector<double> lowerBounds;
+                std::vector<double> upperBounds;
+                Assignment bestAssignment;
+                double bestPerformance;
+                PipelineStats bestStats;
         };
 
         Objective _objective;
     };
-
-    template<typename PointT>
-    size_t OPT<PointT>::Objective::iteration = 0;
-
-    template<typename PointT>
-    std::vector<double> OPT<PointT>::Objective::lowerBounds = std::vector<double>();
-
-    template<typename PointT>
-    std::vector<double> OPT<PointT>::Objective::upperBounds = std::vector<double>();
-
-    template<typename PointT>
-    Assignment OPT<PointT>::Objective::bestAssignment = Assignment();
 
 
     typedef OPT<PointType> Optimizer;

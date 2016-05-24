@@ -54,7 +54,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory RSDFeatureDescriptor<PointT>::argumentCategory(
-            "RSD", "Feature Description using Radius-based Surface Descriptor (RSD)",
+            "RSD", "Feature description using Radius-based Surface Descriptor (RSD)",
             PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>

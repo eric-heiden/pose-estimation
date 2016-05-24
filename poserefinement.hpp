@@ -25,7 +25,7 @@ namespace PoseEstimation
          * @param transformation Final rigid transformation that aligns source cloud to target.
          * @return Whether the refinement process has converged.
          */
-        virtual bool refine(const PC<PointT> &source, const PC<PointT> &target,
-                                  PC<PointT> &out, Eigen::Matrix4f &transformation) = 0;
+        virtual bool refine(PC<PointT> &source, PC<PointT> &target,
+                            PC<PointT> &out, Eigen::Matrix4f &transformation) = 0;
     };
 }

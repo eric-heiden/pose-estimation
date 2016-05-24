@@ -56,7 +56,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory SpinImageFeatureDescriptor<PointT>::argumentCategory(
-            "SI", "Feature Description using Spin Images (SI)",
+            "SI", "Feature description using Spin Images (SI)",
             PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>

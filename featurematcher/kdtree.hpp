@@ -94,7 +94,7 @@ namespace PoseEstimation
 
     template<typename DescriptorT>
     ParameterCategory KdTreeFeatureMatcher<DescriptorT>::argumentCategory(
-                "kdmatch", "Kd-tree correspondence matching",
+                "kdmatch", "Feature matching using Kd-Trees",
                 PipelineModuleType::FeatureMatcher);
 
     template<typename DescriptorT>

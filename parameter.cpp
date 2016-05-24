@@ -177,14 +177,14 @@ std::string Parameter::_type_name(const PoseEstimation::SupportedValue &v)
 {
     if (v.type() == typeid(int))
         return "int";
-    if (v.type() == typeid(char))
-        return "char";
     if (v.type() == typeid(float))
         return "float";
     if (v.type() == typeid(bool))
         return "bool";
     if (v.type() == typeid(std::string))
         return "string";
+    if (v.type() == typeid(Enum))
+        return "enum";
     return "unknown";
 }
 
@@ -202,7 +202,7 @@ void Parameter::_display(int indent)
     {
         std::cout << " constraints: ";
         size_t i = 0;
-        for (auto &&constraint : _constraints)
+        for (auto &constraint : _constraints)
         {
             std::cout << "(" << constraint->str() << ")";
             if (++i < _constraints.size())
@@ -291,16 +291,15 @@ void _set_json_arg_value(Json &jarg, SupportedValue &value)
 {
     if (value.type() == typeid(int))
         jarg["value"] = boost::get<int>(value);
-    else if (value.type() == typeid(char))
-        jarg["value"] = boost::get<char>(value);
     else if (value.type() == typeid(float))
         jarg["value"] = boost::get<float>(value);
     else if (value.type() == typeid(std::string))
         jarg["value"] = boost::get<std::string>(value);
     else if (value.type() == typeid(bool))
         jarg["value"] = boost::get<bool>(value);
+    else if (value.type() == typeid(Enum))
+        jarg["value"] = boost::get<Enum>(value).valueName();
 }
-
 
 bool Parameter::saveAll(const std::string &filename)
 {
@@ -324,7 +323,23 @@ bool Parameter::saveAll(const std::string &filename)
                 Json aj;
                 aj["name"] = arg->name();
                 _set_json_arg_value(aj, arg->_value);
-                aj["description"] = arg->description();
+                std::string desc = arg->description();
+                if (!arg->constraints().empty())
+                {
+                    desc += ", constraints: ";
+                    size_t i = 0;
+                    for (auto &constraint : arg->constraints())
+                    {
+                        desc += "(" + constraint->str() + ")";
+                        if (++i < arg->constraints().size())
+                            desc += ", ";
+                    }
+                }
+                if (arg->unconvertedValue().type() == typeid(Enum))
+                {
+                    desc += ", possible values: " + boost::algorithm::join(arg->value<Enum>().names(), "|");
+                }
+                aj["description"] = desc;
                 cj["parameters"].push_back(aj);
             }
             mj["categories"].push_back(cj);
@@ -344,19 +359,6 @@ bool Parameter::saveAll(const std::string &filename)
 
     return true;
 }
-
-
-SupportedValue _json_to_value(Json j)
-{
-    if (j.is_boolean())
-        return (bool)j;
-    if (j.is_number_float())
-        return (float)j;
-    if (j.is_number_integer())
-        return (int)j;
-    return j.dump();
-}
-
 
 bool Parameter::loadAll(const std::string &filename)
 {
@@ -385,9 +387,22 @@ bool Parameter::loadAll(const std::string &filename)
 
             for (auto &parameter : category["parameters"])
             {
-                // constructor updates parameter if necessary
-                Parameter(category["name"], parameter["name"],
-                          _json_to_value(parameter["value"]), parameter["description"]);
+                // handle Enum parameter
+                std::string id = (boost::format("%s_%s") % category["name"] % parameter["name"]).str();
+                Parameter *p = Parameter::get(id);
+                if (!p)
+                    continue;
+
+                if (p->_value.type() == typeid(Enum))
+                    p->value<Enum>().set(parameter["value"].dump());
+                else if (p->_value.type() == typeid(int))
+                    p->_value = (int)parameter["value"];
+                else if (p->_value.type() == typeid(float))
+                    p->_value = (float)parameter["value"];
+                else if (p->_value.type() == typeid(std::string))
+                    p->_value = parameter["value"].dump();
+                else if (p->_value.type() == typeid(bool))
+                    p->_value = (bool)parameter["value"];
             }
         }
     }
@@ -397,10 +412,9 @@ bool Parameter::loadAll(const std::string &filename)
 
 int Parameter::_parse(int argc, char *argv[])
 {
+    //TODO parse enum parameters from CLI
     if (_value.type() == typeid(int))
         return _parse_helper<int>(argc, argv);
-    if (_value.type() == typeid(char))
-        return _parse_helper<char>(argc, argv);
     if (_value.type() == typeid(float))
         return _parse_helper<float>(argc, argv);
     if (_value.type() == typeid(std::string))
@@ -419,7 +433,8 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
                                 PipelineModuleType::Type moduleType)
 {
     Logger::debug(boost::format("Defining parameter category %s...") % name);
-    _categories[name] = description;
+    if (_categories.find(name) == _categories.end() || _categories[name].empty())
+        _categories[name] = description;
     if (_modules.find(moduleType) == _modules.end())
         _modules[moduleType] = std::vector<std::string>();
 
@@ -459,7 +474,6 @@ ParameterCategory::ParameterCategory(const std::string &name, const std::string 
 ParameterCategory::ParameterCategory(const ParameterCategory &category)
     : _name(category._name)
 {
-
 }
 
 std::vector<Parameter*> ParameterCategory::parameters() const
@@ -470,6 +484,11 @@ std::vector<Parameter*> ParameterCategory::parameters() const
 std::string ParameterCategory::name() const
 {
     return _name;
+}
+
+std::string ParameterCategory::description() const
+{
+    return Parameter::_categories[_name];
 }
 
 ParameterCategory *_emptyCategory = nullptr;
@@ -566,6 +585,18 @@ bool Enum::get(int id, std::string &name) const
     return true;
 }
 
+bool Enum::set(const std::string &name)
+{
+    int v;
+    if (get(name, v))
+        value = v;
+}
+
+bool Enum::set(int id)
+{
+    value = id;
+}
+
 size_t Enum::size() const
 {
     return _map.size();
@@ -639,7 +670,7 @@ bool ConstantConstraint::isFulfilled(Parameter *parameter) const
 
 std::string ConstantConstraint::str() const
 {
-    static std::string _str = (boost::format("%s %d") % ParameterConstraintType::str(_type) % _constant).str();
+    std::string _str = (boost::format("%s %d") % ParameterConstraintType::str(_type) % _constant).str();
     return _str;
 }
 
@@ -670,7 +701,7 @@ bool VariableConstraint::isFulfilled(Parameter *parameter) const
 
 std::string VariableConstraint::str() const
 {
-    static std::string _str = (boost::format("%s %s") % ParameterConstraintType::str(_type) % _parameterName).str();
+    std::string _str = (boost::format("%s %s") % ParameterConstraintType::str(_type) % _parameterName).str();
     return _str;
 }
 

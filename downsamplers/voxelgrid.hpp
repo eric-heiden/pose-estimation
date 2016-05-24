@@ -9,6 +9,9 @@
 
 namespace PoseEstimation
 {
+    /**
+     * @brief Downsampling using Voxel grid filtering.
+     */
     template<typename PointT>
     class VoxelGridDownsampler : public Downsampler<PointT>
     {
@@ -41,7 +44,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory VoxelGridDownsampler<PointT>::argumentCategory(
-                "voxelgrid", "Voxel grid downsampling",
+                "voxelgrid", "Downsampling using Voxel grid filtering",
                 PipelineModuleType::Downsampler);
 
     template<typename PointT>

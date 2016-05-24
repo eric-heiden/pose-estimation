@@ -39,8 +39,6 @@ namespace PoseEstimation
                 candidates.push_back(candidate);
             }
 
-            std::vector<bool> mask;
-
             pcl::GlobalHypothesesVerification<PointT, PointT> hv;
 
             hv.setSceneCloud(target.cloud());
@@ -55,6 +53,8 @@ namespace PoseEstimation
             hv.setRadiusNormals(normalEstimationRadius.value<float>());
 
             hv.verify();
+
+            std::vector<bool> mask;
             hv.getMask(mask);
 
             size_t positive = 0;
@@ -105,7 +105,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::clutterRegularizer(
-            "hv", "clutter_r", (float)2.0f,
+            "hv", "clutter_regularizer", (float)2.0f,
             "Clutter regularizer");
 
     template<typename PointT>

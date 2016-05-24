@@ -29,10 +29,11 @@ int main(int argc, char **argv)
 {
     Parameter::parseAll(argc, argv);
 
+    Configuration::argumentCategory.parameters();
     Parameter::saveAll();
     Parameter::loadAll();
 
-    //Visualizer::enabled() = false;
+    Visualizer::enabled() = false;
 
     if (pcl::console::find_switch(argc, argv, "-h"))
         showHelp(argv[0]);
@@ -64,9 +65,20 @@ int main(int argc, char **argv)
     target.translate(1, 0, 0);
 
     Configuration config;
-    Optimizer opt(source, target);
-    opt.optimize(config);
+    config.useModule(PipelineModuleType::HypothesisVerifier, false);
 
+    Optimizer opt(source, target);
+    OptimizationResult res = opt.optimize(config);
+
+    for (auto &assignment : res.bestAssignment)
+    {
+        Parameter::get(assignment.first)->setNumericalValue(assignment.second);
+        Logger::debug(boost::format("Setting %d = %d") % assignment.first % assignment.second);
+    }
+
+    Visualizer::enabled() = true;
+
+    //config.useModule(PipelineModuleType::HypothesisVerifier, true);
     // actual pose estimation pipeline
     config.run(source, target);
 

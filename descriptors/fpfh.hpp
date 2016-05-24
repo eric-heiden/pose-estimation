@@ -49,7 +49,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory FPFHFeatureDescriptor<PointT>::argumentCategory(
-            "FPFH", "Fast Point Feature Histogram (FPFH)",
+            "FPFH", "Feature description using Fast Point Feature Histogram (FPFH)",
             PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>

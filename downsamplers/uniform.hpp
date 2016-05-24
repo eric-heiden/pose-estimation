@@ -9,6 +9,9 @@
 
 namespace PoseEstimation
 {
+    /**
+     * @brief Downsampling using uniform filtering.
+     */
     template<typename PointT>
     class UniformDownsampler : public Downsampler<PointT>
     {
@@ -40,7 +43,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory UniformDownsampler<PointT>::argumentCategory(
-                "uniformdown", "Uniform downsampling",
+                "uniformdown", "Downsampling using uniform filtering",
                 PipelineModuleType::Downsampler);
 
     template<typename PointT>

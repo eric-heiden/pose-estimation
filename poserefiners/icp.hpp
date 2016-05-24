@@ -12,14 +12,14 @@ namespace PoseEstimation
      * @brief Pose refinement using Iterative Closest Point (ICP).
      */
     template<typename PointT>
-    class ICPPoseRefiner : PoseRefiner<PointT>
+    class ICPPoseRefiner : public PoseRefiner<PointT>
     {
     public:
         ICPPoseRefiner() : PoseRefiner<PointT>()
         {
         }
 
-        virtual bool refine(const PC<PointT> &source, const PC<PointT> &target,
+        virtual bool refine(PC<PointT> &source, PC<PointT> &target,
                             PC<PointT> &out, Eigen::Matrix4f &transformation)
         {
             _icp.setInputSource(source.cloud());

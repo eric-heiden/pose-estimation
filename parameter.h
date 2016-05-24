@@ -27,6 +27,9 @@ namespace PoseEstimation
         bool get(std::string name, int &id) const;
         bool get(int id, std::string &name) const;
 
+        bool set(const std::string &name);
+        bool set(int id);
+
         size_t size() const;
         std::vector<std::string> names() const;
 
@@ -42,7 +45,7 @@ namespace PoseEstimation
         boost::bimap<int, std::string> _map;
     };
 
-    typedef boost::variant<int, float, char, bool, std::string, Enum> SupportedValue;
+    typedef boost::variant<int, float, bool, std::string, Enum> SupportedValue;
 
     class ParameterConstraint;
     class ParameterCategory;
@@ -327,6 +330,7 @@ namespace PoseEstimation
         std::vector<Parameter*> parameters() const;
 
         std::string name() const;
+        std::string description() const;
 
         static ParameterCategory& EmptyCategory();
 

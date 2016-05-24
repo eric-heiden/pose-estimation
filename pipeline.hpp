@@ -13,6 +13,7 @@
 #include "featurematching.hpp"
 #include "visualizer.h"
 #include "hypothesisverification.hpp"
+#include "poserefinement.hpp"
 
 /**
  * @brief Namespace for Pose Estimation
@@ -24,7 +25,7 @@ namespace PoseEstimation
      */
     struct PipelineStats
     {
-        const size_t MAX_POINTS = 640 * 480; // Kinect's resolution
+        static const size_t MAX_POINTS = 640 * 480; // Kinect's resolution
 
         size_t sourceDownsampledPoints;
         size_t targetDownsampledPoints;
@@ -37,6 +38,16 @@ namespace PoseEstimation
 
         bool transformationSuccessful;
         std::vector<Eigen::Matrix4f> transformationInstances;
+
+        PipelineStats()
+            : sourceDownsampledPoints(0),
+              targetDownsampledPoints(0),
+              sourceKeypointsExtracted(0),
+              targetKeypointsExtracted(0),
+              correspondencesFound(0),
+              averageCorrespondenceDistance(std::numeric_limits<double>::max()),
+              transformationSuccessful(false)
+        {}
 
         /**
          * @brief Computes the performance value of the pipeline's outcome.
@@ -61,7 +72,7 @@ namespace PoseEstimation
         void print()
         {
             #define _PRINT_PROPERTY(property) \
-            Logger::debug(boost::format("%1%: %2%") % #property % property)
+                Logger::debug(boost::format("%1%: %2%") % #property % property)
 
             _PRINT_PROPERTY(sourceDownsampledPoints);
             _PRINT_PROPERTY(targetDownsampledPoints);
@@ -75,6 +86,12 @@ namespace PoseEstimation
             _PRINT_PROPERTY(transformationSuccessful);
             _PRINT_PROPERTY(transformationInstances.size());
         }
+
+        PipelineStats(const PipelineStats &) = default;
+        PipelineStats(PipelineStats &&) = default;
+
+        PipelineStats& operator=(const PipelineStats&) & = default;
+        PipelineStats& operator=(PipelineStats&&) & = default;
     };
 
     /**
@@ -93,6 +110,11 @@ namespace PoseEstimation
     {
     public:
         /**
+         * @brief Maximum number of descriptors.
+         */
+        static const size_t MAX_DESCRIPTORS = 20000;
+
+        /**
          * @brief Initializes the pipeline without initializing the pipeline modules.
          */
         Pipeline()
@@ -101,7 +123,7 @@ namespace PoseEstimation
             _usedModules[PipelineModuleType::FeatureDescriptor] = true;
             _usedModules[PipelineModuleType::FeatureMatcher] = true;
             _usedModules[PipelineModuleType::KeypointExtractor] = true;
-            _usedModules[PipelineModuleType::PoseRefiner] = true;
+            _usedModules[PipelineModuleType::PoseRefiner] = false; //TODO enable
             _usedModules[PipelineModuleType::TransformationEstimator] = true;
             _usedModules[PipelineModuleType::HypothesisVerifier] = true;
 
@@ -154,6 +176,15 @@ namespace PoseEstimation
         }
 
         /**
+         * @brief The module for keypoint extraction.
+         * @return Reference that allows for replacing the module.
+         */
+        std::shared_ptr<PoseRefiner<PointT> >& poseRefiner()
+        {
+            return _poseRefiner;
+        }
+
+        /**
          * @brief Execute the pose estimation pipeline.
          * @param source The source point cloud.
          * @param target The target point cloud.
@@ -168,7 +199,8 @@ namespace PoseEstimation
             // downsample
             if (_usedModules.at(PipelineModuleType::Downsampler))
             {
-                Logger::log("Downsampling...");
+                Logger::log(boost::format("%s...")
+                            % _downsampler->parameterCategory().description());
                 _downsampler->downsample(source, source);
                 _downsampler->downsample(target, target);
             }
@@ -181,9 +213,17 @@ namespace PoseEstimation
             PclPointCloud::Ptr target_keypoints(new PclPointCloud);
             if (_usedModules.at(PipelineModuleType::KeypointExtractor))
             {
-                Logger::log("Keypoint extraction...");
+                Logger::log(boost::format("%s...")
+                            % _keypointExtractor->parameterCategory().description());
                 _keypointExtractor->extract(source, source_keypoints);
                 _keypointExtractor->extract(target, target_keypoints);
+
+                if (source_keypoints->size() > MAX_DESCRIPTORS
+                        || target_keypoints->size() > MAX_DESCRIPTORS)
+                {
+                    Logger::warning("Stopping pipeline, maximum number of descriptors was reached.");
+                    return stats;
+                }
             }
             else
             {
@@ -208,7 +248,8 @@ namespace PoseEstimation
             vo.setPointSize(5.0);
 
             // feature description
-            Logger::log("Feature description...");
+            Logger::log(boost::format("%s...")
+                        % _featureDescriptor->parameterCategory().description());
             typename PclDescriptorCloud::Ptr source_features(new PclDescriptorCloud);
             typename PclDescriptorCloud::Ptr target_features(new PclDescriptorCloud);
 
@@ -218,11 +259,12 @@ namespace PoseEstimation
             Logger::debug(boost::format("Computed %d features for target point cloud.") % target_features->size());
 
             // matching
-            Logger::log("Feature matching...");
+            Logger::log(boost::format("%s...")
+                        % _featureMatcher->parameterCategory().description());
             pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
             _featureMatcher->match(source_features, target_features, correspondences);
 
-            for (size_t j = 0; j < std::min(correspondences->size(), (size_t)500); ++j) // limit the number of displayed corrs.
+            for (size_t j = 0; j < std::min(correspondences->size(), (size_t)200); ++j) // limit the number of displayed corrs.
             {
                 PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
                 PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
@@ -235,7 +277,8 @@ namespace PoseEstimation
             stats.correspondencesFound = correspondences->size();
 
             // transformation estimation
-            Logger::log("Transformation estimation...");
+            Logger::log(boost::format("%s...")
+                        % _transformationEstimator->parameterCategory().description());
             std::vector<Eigen::Matrix4f> transformations;
             bool tes = _transformationEstimator->estimate(
                         source, target,
@@ -243,6 +286,8 @@ namespace PoseEstimation
                         source_features, target_features,
                         correspondences, transformations);
             Logger::debug(boost::format("Transformation estimation successfull? %1%") % tes);
+
+            _removeDuplicates(transformations);
 
             stats.transformationSuccessful = tes;
             stats.transformationInstances = transformations;
@@ -253,7 +298,7 @@ namespace PoseEstimation
 
                 if (!transformations.empty())
                 {
-                    for (size_t i = 0; i < std::min(transformations.size(), (size_t)80); i++) // limit number of displayed instances
+                    for (size_t i = 0; i < std::min(transformations.size(), (size_t)20); i++) // limit number of displayed instances
                     {
                         Logger::debug(boost::format("Instance #%1%:\n%2%") % (i+1) % transformations[i]);
                         PointCloud vpc(source);
@@ -265,11 +310,23 @@ namespace PoseEstimation
             }
 
             // pose refinement
-            //TODO implement
+            if (_usedModules.at(PipelineModuleType::PoseRefiner) && !transformations.empty())
+            {
+                Logger::log(boost::format("%s...")
+                            % _poseRefiner->parameterCategory().description());
+                for (auto &transformation : transformations)
+                {
+                    PointCloud rpc(source);
+                    rpc.transform(transformation);
+                    bool refined = _poseRefiner->refine(rpc, target, rpc, transformation);
+                    Logger::debug(boost::format("\tRefined? %1%") % refined);
+                }
+            }
 
             // hypothesis verification
             if (_usedModules.at(PipelineModuleType::HypothesisVerifier) && !transformations.empty())
             {
+                Logger::log("Hypothesis verification...");
                 std::vector<bool> mask = _hypothesisVerifier->verify(source, target, transformations);
                 size_t hvc = 0;
                 for (size_t i = 0; i < transformations.size() && hvc < 5; i++) // limit number of displayed instances
@@ -306,9 +363,28 @@ namespace PoseEstimation
         std::shared_ptr<KeypointExtractor<PointT> > _keypointExtractor;
         std::shared_ptr<TransformationEstimator<PointT, DescriptorT> > _transformationEstimator;
         std::shared_ptr<FeatureMatcher<DescriptorT> > _featureMatcher;
+        std::shared_ptr<PoseRefiner<PointT> > _poseRefiner;
 
         std::shared_ptr<HypothesisVerifier<PointT> > _hypothesisVerifier;
 
         std::map<PipelineModuleType::Type, bool> _usedModules;
+
+        template<typename T>
+        static void _removeDuplicates(std::vector<T> &vs)
+        {
+            std::vector<T> seen;
+
+            auto it = vs.begin();
+            while (it != vs.end())
+            {
+                if (std::find(seen.begin(), seen.end(), *it) != seen.end())
+                    it = vs.erase(it);
+                else
+                {
+                    seen.push_back(*it);
+                    ++it;
+                }
+            }
+        }
     };
 }

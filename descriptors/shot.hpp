@@ -23,13 +23,14 @@ namespace PoseEstimation
 
         virtual void describe(PC<PointT> &pc,
                               const typename pcl::PointCloud<PointT>::Ptr &keypoints,
-                              const PclNormalCloud::Ptr &normals,
+                              const PclNormalCloud::Ptr &,
                               pcl::PointCloud<DescriptorType>::Ptr &descriptors)
         {
             static auto shot = pcl::SHOTColorEstimationOMP
                     <PointT, NormalType, DescriptorType>(true, useColor.value<bool>());
 
             shot.setRadiusSearch(pc.resolution() * searchRadius.value<float>());
+            // built-in local reference frame estimation using BOrder Aware Repeatable Directions (BOARD)
             shot.setLRFRadius(pc.resolution() * lrfRadius.value<float>());
             shot.setInputCloud(keypoints);
             shot.setInputNormals(pc.normals());
@@ -50,7 +51,7 @@ namespace PoseEstimation
 
     template<typename PointT>
     ParameterCategory SHOTFeatureDescriptor<PointT>::argumentCategory(
-            "SHOT", "Feature Extraction using Signature of Histograms of OrienTations (SHOT)",
+            "SHOT", "Feature description using Signature of Histograms of OrienTations (SHOT)",
             PipelineModuleType::FeatureDescriptor);
 
     template<typename PointT>
