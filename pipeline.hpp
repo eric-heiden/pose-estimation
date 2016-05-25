@@ -112,7 +112,7 @@ namespace PoseEstimation
         /**
          * @brief Maximum number of descriptors.
          */
-        static const size_t MAX_DESCRIPTORS = 100000;
+        static const size_t MAX_DESCRIPTORS = 200000;
 
         /**
          * @brief Initializes the pipeline without initializing the pipeline modules.
@@ -245,11 +245,11 @@ namespace PoseEstimation
             }
 
             // visualize keypoints
-            PointCloud skp(source_keypoints);
+            PC<PointT> skp(source_keypoints);
             VisualizerObject vo = Visualizer::visualize(skp, Color::BLUE);
             vo.setPointSize(5.0);
 
-            PointCloud tkp(target_keypoints);
+            PC<PointT> tkp(target_keypoints);
             vo = Visualizer::visualize(tkp, Color::BLUE);
             vo.setPointSize(5.0);
 
@@ -296,7 +296,7 @@ namespace PoseEstimation
 
             stats.transformationSuccessful = tes;
             stats.transformationInstances = transformations;
-            _removeDuplicates(transformations);
+            //_removeDuplicates(transformations);
 
             if (tes)
             {                
@@ -307,7 +307,7 @@ namespace PoseEstimation
                     for (size_t i = 0; i < std::min(transformations.size(), (size_t)20); i++) // limit number of displayed instances
                     {
                         Logger::debug(boost::format("Instance #%1%:\n%2%") % (i+1) % transformations[i]);
-                        PointCloud vpc(source);
+                        PC<PointT> vpc(source);
                         vpc.transform(transformations[i]);
                         VisualizerObject vpco = Visualizer::visualize(vpc, Color::YELLOW);
                         vpco.setPointSize(2.0);
@@ -322,7 +322,7 @@ namespace PoseEstimation
                             % _poseRefiner->parameterCategory().description());
                 for (auto &transformation : transformations)
                 {
-                    PointCloud rpc(source);
+                    PC<PointT> rpc(source);
                     rpc.transform(transformation);
                     bool refined = _poseRefiner->refine(rpc, target, rpc, transformation);
                     Logger::debug(boost::format("\tRefined? %1%") % refined);
@@ -341,7 +341,7 @@ namespace PoseEstimation
                         continue;
 
                     Logger::debug(boost::format("Valid hypothesis #%1%:\n%2%") % (i+1) % transformations[i]);
-                    PointCloud vpc(source);
+                    PC<PointT> vpc(source);
                     vpc.transform(transformations[i]);
                     VisualizerObject vpco = Visualizer::visualize(vpc, Color::GREEN);
                     vpco.setPointSize(3.0);

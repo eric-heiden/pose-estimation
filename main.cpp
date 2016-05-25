@@ -27,16 +27,6 @@ void showHelp(char *appname)
 
 int main(int argc, char **argv)
 {
-    Parameter::parseAll(argc, argv);
-
-    Configuration::argumentCategory.parameters();
-    Parameter::loadAll();
-
-    Visualizer::enabled() = false;
-
-    if (pcl::console::find_switch(argc, argv, "-h"))
-        showHelp(argv[0]);
-
     // source & target pcl filenames
     std::vector<int> filenames = pcl::console::parse_file_extension_argument(argc, argv, ".pcd");
     if (filenames.size() != 2)
@@ -45,6 +35,8 @@ int main(int argc, char **argv)
         showHelp(argv[0]);
         std::exit(EXIT_FAILURE);
     }
+    else if (pcl::console::find_switch(argc, argv, "-h"))
+        showHelp(argv[0]);
 
     std::string source_filename = argv[filenames[0]];
     std::string target_filename = argv[filenames[1]];
@@ -61,19 +53,31 @@ int main(int argc, char **argv)
     }
 
     // move target cloud to the right to visualize source & target side by side
-    target.translate(1, 0, 0);
+    target.translate(1, 0, 0);    
 
     Configuration config;
+    Optimizer opt(source, target);
+    Parameter::parseAll(argc, argv);
+
+    Optimizer::argumentCategory.parameters();
+    Configuration::argumentCategory.parameters();
+
+    Parameter::loadAll();
+    //Parameter::saveAll();
+
+    Visualizer::enabled() = false;
+
     config.useModule(PipelineModuleType::HypothesisVerifier, false);
 
-    Optimizer opt(source, target);
+    Logger::tic("Optimization");
     OptimizationResult res = opt.optimize(config);
+    Logger::toc("Optimization");
     Parameter::saveAll("optimal_configuration.json"); // save optimal configuration
 
     for (auto &assignment : res.bestAssignment)
     {
         Parameter::get(assignment.first)->setNumericalValue(assignment.second);
-        Logger::debug(boost::format("Setting %d = %d") % assignment.first % assignment.second);
+        Logger::debug(boost::format("Setting %s = %d") % assignment.first % assignment.second);
     }
 
     Visualizer::enabled() = true;

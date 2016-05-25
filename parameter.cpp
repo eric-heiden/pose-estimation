@@ -353,6 +353,10 @@ bool Parameter::saveAll(const std::string &filename)
         Logger::error(boost::format("Could not save parameters to \"%s\".") % filename);
         return false;
     }
+    else
+    {
+        Logger::log(boost::format("Parameters saved successfully to \"%s\".") % filename);
+    }
 
     std::string r = j.dump(4);
     fout << r;
@@ -398,7 +402,11 @@ bool Parameter::loadAll(const std::string &filename)
                 }
 
                 if (p->_value.type() == typeid(Enum))
-                    p->value<Enum>().set(parameter["value"].get<std::string>());
+                {
+                    Enum en = p->value<Enum>();
+                    en.set(parameter["value"].get<std::string>());
+                    p->_value = en;
+                }
                 else if (p->_value.type() == typeid(int))
                     p->_value = (int)parameter["value"];
                 else if (p->_value.type() == typeid(float))
@@ -522,9 +530,11 @@ EnumParameter::EnumParameter(const std::string &category, const std::string &nam
 bool EnumParameter::setValue(const std::string &value)
 {
     int id;
-    if ((boost::get<Enum>(_value)).get(value, id))
-    {
-        (boost::get<Enum>(_value)).value = id;
+    Enum en = boost::get<Enum>(_value);
+    if (en.get(value, id))
+    {        
+        en.set(value);
+        _value = en;
         return true;
     }
     return false;
@@ -609,7 +619,7 @@ size_t Enum::size() const
 std::vector<std::string> Enum::names() const
 {
     std::vector<std::string> ns;
-    for (auto name: _map.right)
+    for (auto name : _map.right)
         ns.push_back(name.first);
 
     return ns;
@@ -621,7 +631,8 @@ Enum Enum::define(std::initializer_list<std::string> _names)
     int i = 0;
     for (auto name : _names)
     {
-        e._map.insert(boost::bimap<int, std::string>::value_type(i++, name));
+        e._map.insert(boost::bimap<int, std::string>::value_type(i, name));
+        ++i;
     }
 
     return e;
@@ -632,7 +643,6 @@ Enum Enum::define(std::initializer_list<std::string> _names)
 ParameterConstraint::ParameterConstraint(ParameterConstraintType::Type t)
     : _type(t)
 {
-
 }
 
 ParameterConstraintType::Type ParameterConstraint::type() const
@@ -664,7 +674,6 @@ bool ParameterConstraint::_basicFulfillmentTest(double value, Parameter *paramet
 ConstantConstraint::ConstantConstraint(ParameterConstraintType::Type t, double constant)
     : ParameterConstraint(t), _constant(constant)
 {
-
 }
 
 bool ConstantConstraint::isFulfilled(Parameter *parameter) const
@@ -687,7 +696,6 @@ double ConstantConstraint::resolveNumericalValue() const
 VariableConstraint::VariableConstraint(ParameterConstraintType::Type t, const std::string &parameterName)
     : ParameterConstraint(t), _parameterName(parameterName)
 {
-
 }
 
 bool VariableConstraint::isFulfilled(Parameter *parameter) const

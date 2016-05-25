@@ -37,7 +37,7 @@ namespace PoseEstimation
                 if (!representation.isValid(source_descriptors->at(i))) // skip NaNs
                 {
                     ++skipped;
-                    continue;
+                    //continue;
                 }
 
                 // find the single closest descriptor

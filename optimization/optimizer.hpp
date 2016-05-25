@@ -3,6 +3,7 @@
 #include <nlopt.hpp>
 
 #include "../configuration.hpp"
+#include "../pipelinemodule.hpp"
 
 namespace PoseEstimation
 {
@@ -23,10 +24,11 @@ namespace PoseEstimation
      * @brief Optimization of configuration parameters using NLopt.
      */
     template<typename PointT>
-    class OPT
+    class OPT : public PipelineModule
     {
     public:
         OPT(PC<PointT> source, PC<PointT> target)
+            : PipelineModule(PipelineModuleType::Miscellaneous)
         {
             _objective.source = source;
             _objective.target = target;
@@ -69,16 +71,16 @@ namespace PoseEstimation
             opt.set_min_objective(Objective::wrap, &_objective);
 
             opt.set_xtol_rel(-1.0); // deactivate relative tolerance stopping criterion
-            opt.set_xtol_abs(0.5);  // stop when an optimization step changes all parameters by less than this value
-            opt.set_maxeval(30);    // stop after so many iterations
+            opt.set_xtol_abs(xdelta.value<float>());  // stop when an optimization step changes all parameters by less than this value
+            opt.set_maxeval(iterations.value<int>());    // stop after so many iterations
 
             std::vector<double> x(dimensions);
             Logger::debug("Initializing variables");
-            const double alpha = 0.2;
             for (size_t i = 0; i < dimensions; ++i)
             {
                 // initialize variables
-                x[i] = _objective.lowerBounds[i] + alpha * (_objective.upperBounds[i] - _objective.lowerBounds[i]);
+                x[i] = _objective.lowerBounds[i]
+                        + alpha.value<float>() * (_objective.upperBounds[i] - _objective.lowerBounds[i]);
             }
 
             double minf;
@@ -113,6 +115,13 @@ namespace PoseEstimation
 
         OPT<PointT>& operator=(const OPT<PointT>&) & = default;
         OPT<PointT>& operator=(OPT<PointT>&&) & = default;
+
+        static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
+
+        static Parameter alpha;
+        static Parameter iterations;
+        static Parameter xdelta;
 
     private:
         /**
@@ -198,6 +207,33 @@ namespace PoseEstimation
 
         Objective _objective;
     };
+
+    template<typename PointT>
+    ParameterCategory OPT<PointT>::argumentCategory(
+            "opt", "Non-Linear Optimization for Pipeline Module Parameters",
+            PipelineModuleType::Miscellaneous);
+
+    template<typename PointT>
+    Parameter OPT<PointT>::alpha = Parameter(
+            "opt",
+            "alpha",
+            0.2f,
+            "Relative parameter value during initialization in the corresponding value range",
+            NUMERICAL_PARAMETER_RANGE(0.0, 1.0));
+
+    template<typename PointT>
+    Parameter OPT<PointT>::iterations = Parameter(
+            "opt",
+            "iterations",
+            40,
+            "Maximum number of iterations (stopping criterion)");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::xdelta = Parameter(
+            "opt",
+            "xdelta",
+            0.5f,
+            "Minimum allowed changed of all parameter values (stopping criterion)");
 
 
     typedef OPT<PointType> Optimizer;

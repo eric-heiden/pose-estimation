@@ -36,6 +36,11 @@ namespace PoseEstimation
             _rsd.setPlaneRadius(pc.resolution() * planeRadius.value<float>());
             _rsd.setSaveHistograms(saveHistograms.value<bool>());
 
+            typename pcl::search::KdTree<PointT>::Ptr kdtree(new pcl::search::KdTree<PointT>);
+            _rsd.setSearchMethod(kdtree);
+            kdtree->setInputCloud(keypoints);
+            _rsd.setSearchSurface(keypoints);
+
             Logger::tic("RSD Feature Extraction");
             _rsd.compute(*features);
             Logger::toc("RSD Feature Extraction");
