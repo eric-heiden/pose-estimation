@@ -86,12 +86,14 @@ namespace PoseEstimation
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::inlierThreshold(
             "hv", "inlier_thresh", (float)0.005f,
-            "Inlier threshold");
+            "Inlier threshold",
+            NUMERICAL_PARAMETER_RANGE(0.0, 1.0));
 
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::occlusionThreshold(
             "hv", "occlusion_thresh", (float)0.01f,
-            "Occlusion threshold");
+            "Occlusion threshold",
+            NUMERICAL_PARAMETER_RANGE(0.0, 1.0));
 
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::regularizer(
@@ -101,7 +103,8 @@ namespace PoseEstimation
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::clutterRadius(
             "hv", "clutter_r", (float)0.03f,
-            "Clutter radius");
+            "Clutter radius",
+            NUMERICAL_PARAMETER_RANGE(0.0, 1.0));
 
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::clutterRegularizer(
@@ -116,5 +119,6 @@ namespace PoseEstimation
     template<typename PointT>
     Parameter HypothesisVerifier<PointT>::normalEstimationRadius(
             "hv", "normal_r", (float)0.05f,
-            "Search radius for normal estimation");
+            "Search radius for normal estimation",
+            NUMERICAL_PARAMETER_RANGE(0.0, 1.0));
 }

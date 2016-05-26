@@ -26,7 +26,10 @@ void showHelp(char *appname)
 }
 
 int main(int argc, char **argv)
-{
+{    
+    Optimizer::argumentCategory.parameters();
+    Configuration::argumentCategory.parameters();
+
     // source & target pcl filenames
     std::vector<int> filenames = pcl::console::parse_file_extension_argument(argc, argv, ".pcd");
     if (filenames.size() != 2)
@@ -59,11 +62,8 @@ int main(int argc, char **argv)
     Optimizer opt(source, target);
     Parameter::parseAll(argc, argv);
 
-    Optimizer::argumentCategory.parameters();
-    Configuration::argumentCategory.parameters();
-
-    Parameter::loadAll();
-    //Parameter::saveAll();
+    Parameter::loadAll("optimal_configuration.json");
+    Parameter::saveAll();
 
     Visualizer::enabled() = false;
 

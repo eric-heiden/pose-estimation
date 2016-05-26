@@ -64,7 +64,17 @@ std::string &Parameter::description()
 
 ParameterCategory Parameter::category()
 {
-    return ParameterCategory(_category);
+    PipelineModuleType::Type mt = PipelineModuleType::Miscellaneous;
+    for (auto &&mit : _modules)
+    {
+        if (std::find(mit.second.begin(), mit.second.end(), _category) != mit.second.end())
+        {
+            mt = mit.first;
+            break;
+        }
+    }
+
+    return ParameterCategory(_category, _categories[_category], mt);
 }
 
 double Parameter::numericalValue() const
@@ -191,7 +201,7 @@ std::string Parameter::_type_name(const PoseEstimation::SupportedValue &v)
 void Parameter::_display(int indent)
 {
     while (indent-- > 0)
-        std::cout << '\t';
+        std::cout << "    ";
 
     std::cout << std::left << std::setw(26) << std::setfill(' ') << parseName()
               << std::left << std::setw(58) << std::setfill(' ') << description()
@@ -226,7 +236,7 @@ void Parameter::displayAll()
 
         for (std::string &category : mit.second)
         {
-            std::cout << '\t' << category;
+            std::cout << "    " << category;
             if (!_categories[category].empty())
                 std::cout << " (" << _categories[category] << ")";
             std::cout << std::endl;
@@ -359,7 +369,7 @@ bool Parameter::saveAll(const std::string &filename)
     }
 
     std::string r = j.dump(4);
-    fout << r;
+    fout << r << std::endl;
 
     return true;
 }
@@ -383,12 +393,8 @@ bool Parameter::loadAll(const std::string &filename)
     for (auto &module : j["configuration"])
     {
         Logger::debug(boost::format("Found module %s.") % module["module"]);
-        auto mtype = PipelineModuleType::parse(module["module"].get<std::string>());
         for (auto &category : module["categories"])
         {
-            // create category / module if it doesn't exist
-            _defineCategory(category["name"].get<std::string>(), category["description"].get<std::string>(), mtype);
-
             for (auto &parameter : category["parameters"])
             {
                 // handle Enum parameter
@@ -397,7 +403,7 @@ bool Parameter::loadAll(const std::string &filename)
                 Parameter *p = Parameter::get(id);
                 if (!p)
                 {
-                    Logger::debug("not found");
+                    Logger::error(boost::format("Could not load parameter \"%s\"") % id);
                     continue;
                 }
 
@@ -477,7 +483,7 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
 
 ParameterCategory::ParameterCategory(const std::string &name, const std::string &description,
                                      PipelineModuleType::Type moduleType)
-    : _name(name)
+    : _name(name), _moduleType(moduleType)
 {
     if (name != "empty")
         Parameter::_defineCategory(name, description, moduleType);
@@ -501,6 +507,11 @@ std::string ParameterCategory::name() const
 std::string ParameterCategory::description() const
 {
     return Parameter::_categories[_name];
+}
+
+PipelineModuleType::Type ParameterCategory::moduleType() const
+{
+    return _moduleType;
 }
 
 ParameterCategory *_emptyCategory = nullptr;

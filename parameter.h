@@ -331,11 +331,13 @@ namespace PoseEstimation
 
         std::string name() const;
         std::string description() const;
+        PipelineModuleType::Type moduleType() const;
 
         static ParameterCategory& EmptyCategory();
 
     private:
         std::string _name;
+        PipelineModuleType::Type _moduleType;
     };
 
 

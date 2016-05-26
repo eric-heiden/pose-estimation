@@ -106,27 +106,14 @@ namespace PoseEstimation
      * * (optional) iterative pose refinement based on priorly estimated transformation
      */
     template<typename DescriptorT, typename PointT = PointType>
-    class Pipeline
+    class Pipeline : public PipelineModule
     {
     public:
         /**
-         * @brief Maximum number of descriptors.
-         */
-        static const size_t MAX_DESCRIPTORS = 200000;
-
-        /**
          * @brief Initializes the pipeline without initializing the pipeline modules.
          */
-        Pipeline()
+        Pipeline() : PipelineModule(PipelineModuleType::Miscellaneous)
         {
-            _usedModules[PipelineModuleType::Downsampler] = true;
-            _usedModules[PipelineModuleType::FeatureDescriptor] = true;
-            _usedModules[PipelineModuleType::FeatureMatcher] = true;
-            _usedModules[PipelineModuleType::KeypointExtractor] = true;
-            _usedModules[PipelineModuleType::PoseRefiner] = false; //TODO enable
-            _usedModules[PipelineModuleType::TransformationEstimator] = true;
-            _usedModules[PipelineModuleType::HypothesisVerifier] = true;
-
             _hypothesisVerifier = std::make_shared<HypothesisVerifier<PointT> >();
         }
 
@@ -197,7 +184,7 @@ namespace PoseEstimation
             PipelineStats stats;
 
             // downsample
-            if (_usedModules.at(PipelineModuleType::Downsampler))
+            if (performDownsampling.value<bool>())
             {
                 Logger::log(boost::format("%s...")
                             % _downsampler->parameterCategory().description());
@@ -211,17 +198,19 @@ namespace PoseEstimation
             // keypoint extraction
             PclPointCloud::Ptr source_keypoints(new PclPointCloud);
             PclPointCloud::Ptr target_keypoints(new PclPointCloud);
-            if (_usedModules.at(PipelineModuleType::KeypointExtractor))
+            if (performKeypointExtraction.value<bool>())
             {
                 Logger::log(boost::format("%s...")
                             % _keypointExtractor->parameterCategory().description());
                 _keypointExtractor->extract(source, source_keypoints);
                 _keypointExtractor->extract(target, target_keypoints);
 
-                if (source_keypoints->size() > MAX_DESCRIPTORS
-                        || target_keypoints->size() > MAX_DESCRIPTORS)
+                if (source_keypoints->size() > maxDescriptors.value<int>()
+                        || target_keypoints->size() > maxDescriptors.value<int>())
                 {
-                    Logger::warning("Stopping pipeline, maximum number of descriptors was reached.");
+                    Logger::warning(boost::format("Stopping pipeline, maximum number of descriptors " \
+                                                  "(pipeline_max_descs = %i) was reached.")
+                                % maxDescriptors.value<int>());
                     return stats;
                 }
             }
@@ -316,7 +305,7 @@ namespace PoseEstimation
             }
 
             // pose refinement
-            if (_usedModules.at(PipelineModuleType::PoseRefiner) && !transformations.empty())
+            if (performPoseRefinement.value<bool>() && !transformations.empty())
             {
                 Logger::log(boost::format("%s...")
                             % _poseRefiner->parameterCategory().description());
@@ -330,7 +319,7 @@ namespace PoseEstimation
             }
 
             // hypothesis verification
-            if (_usedModules.at(PipelineModuleType::HypothesisVerifier) && !transformations.empty())
+            if (performHypothesisVerification.value<bool>() && !transformations.empty())
             {
                 Logger::log("Hypothesis verification...");
                 std::vector<bool> mask = _hypothesisVerifier->verify(source, target, transformations);
@@ -352,16 +341,15 @@ namespace PoseEstimation
             return stats;
         }
 
-        /**
-         * @brief Specifies whether the selected module shall be used in the pipeline.
-         * @param module Type of the pipeline module.
-         * @param status Whether the selected module is activated.
-         */
-        void useModule(PipelineModuleType::Type module, bool status)
-        {
-            _usedModules[module] = status;
-            //TODO sanity checks, i.e. some modules depend on each other
-        }
+        static ParameterCategory argumentCategory;
+        PARAMETER_CATEGORY_GETTER(argumentCategory)
+
+        static Parameter maxDescriptors;
+
+        static Parameter performDownsampling;
+        static Parameter performKeypointExtraction;
+        static Parameter performPoseRefinement;
+        static Parameter performHypothesisVerification;
 
     private:
         std::shared_ptr<FeatureDescriptor<PointT, DescriptorT> > _featureDescriptor;
@@ -372,8 +360,6 @@ namespace PoseEstimation
         std::shared_ptr<PoseRefiner<PointT> > _poseRefiner;
 
         std::shared_ptr<HypothesisVerifier<PointT> > _hypothesisVerifier;
-
-        std::map<PipelineModuleType::Type, bool> _usedModules;
 
         template<typename T>
         static void _removeDuplicates(std::vector<T> &vs)
@@ -393,4 +379,44 @@ namespace PoseEstimation
             }
         }
     };
+
+    template<typename DescriptorT, typename PointT>
+    ParameterCategory Pipeline<DescriptorT, PointT>::argumentCategory(
+            "pipeline", "Pose estimation pipeline",
+            PipelineModuleType::Miscellaneous);
+
+    template<typename DescriptorT, typename PointT>
+    Parameter Pipeline<DescriptorT, PointT>::maxDescriptors = Parameter(
+            "opt",
+            "max_descs",
+            300000,
+            "Maximum allowable number of descriptors per cloud to be calculated");
+
+    template<typename DescriptorT, typename PointT>
+    Parameter Pipeline<DescriptorT, PointT>::performDownsampling = Parameter(
+            "opt",
+            "downsampling",
+            true,
+            "Whether to use the downsampling module while processing the pipeline");
+
+    template<typename DescriptorT, typename PointT>
+    Parameter Pipeline<DescriptorT, PointT>::performKeypointExtraction = Parameter(
+            "opt",
+            "keypoint",
+            true,
+            "Whether to use the keypoint extraction module while processing the pipeline");
+
+    template<typename DescriptorT, typename PointT>
+    Parameter Pipeline<DescriptorT, PointT>::performPoseRefinement = Parameter(
+            "opt",
+            "pose_refine",
+            false, //XXX
+            "Whether to use the pose refinement module while processing the pipeline");
+
+    template<typename DescriptorT, typename PointT>
+    Parameter Pipeline<DescriptorT, PointT>::performHypothesisVerification = Parameter(
+            "opt",
+            "hyp_ver",
+            true,
+            "Whether to use the hypothesis verification module while processing the pipeline");
 }

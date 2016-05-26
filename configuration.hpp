@@ -161,7 +161,21 @@ namespace PoseEstimation
             Pipeline<DescriptorT, PointT> pipeline;
             for (auto &used : _usedModules)
             {
-                pipeline.useModule(used.first, used.second);
+                switch (used.first)
+                {
+                    case PipelineModuleType::Downsampler:
+                        pipeline.performDownsampling.setValue(used.second);
+                        break;
+                    case PipelineModuleType::KeypointExtractor:
+                        pipeline.performKeypointExtraction.setValue(used.second);
+                        break;
+                    case PipelineModuleType::PoseRefiner:
+                        pipeline.performPoseRefinement.setValue(used.second);
+                        break;
+                    case PipelineModuleType::HypothesisVerifier:
+                        pipeline.performHypothesisVerification.setValue(used.second);
+                        break;
+                }
             }
 
             pipeline.featureDescriptor() = descriptor;

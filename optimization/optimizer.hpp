@@ -38,7 +38,7 @@ namespace PoseEstimation
          * @brief Performs non-linear optimization over all involved parameters
          * in the given configuration.
          * @param config The configuration.
-         * @return The
+         * @return The {@link OptimizationResult}.
          */
         OptimizationResult optimize(CF<PointT> config)
         {
@@ -46,18 +46,47 @@ namespace PoseEstimation
             _objective.bestPerformance = 0;
             _objective.iteration = 0;
 
+            #define IFF(skip, parameter, type) \
+                bool b_##skip = skip.value<bool>() && parameter->category().moduleType() == type; \
+                if (b_##skip) \
+                { \
+                    Logger::warning(boost::format("Skipping optimization of parameter %s (%s)") \
+                            % parameter->parseName() \
+                            % PipelineModuleType::str(parameter->category().moduleType())); \
+                } \
+                if (b_##skip)
+
             // only consider numerical parameters
             for (Parameter *p : config.involvedParameters())
             {
-                if (p->isNumber())
-                    _objective.parameters.push_back(p);
+                if (!p->isNumber())
+                    continue;
+
+                IFF(skipDescriptor, p, PipelineModuleType::FeatureDescriptor)
+                    continue;
+                IFF(skipDownsampler, p, PipelineModuleType::Downsampler)
+                    continue;
+                IFF(skipFeatureMatcher, p, PipelineModuleType::FeatureMatcher)
+                    continue;
+                IFF(skipKeypointExtractor, p, PipelineModuleType::KeypointExtractor)
+                    continue;
+                IFF(skipTransformationEstimator, p, PipelineModuleType::TransformationEstimator)
+                    continue;
+                IFF(skipPoseRefiner, p, PipelineModuleType::PoseRefiner)
+                    continue;
+                IFF(skipHypothesisVerifier, p, PipelineModuleType::HypothesisVerifier)
+                    continue;
+                IFF(skipMiscellaneous, p, PipelineModuleType::Miscellaneous)
+                    continue;
+
+                _objective.parameters.push_back(p);
             }
 
             _objective.configuration = config;
 
             const size_t dimensions = _objective.parameters.size();
 
-            nlopt::opt opt(nlopt::LN_BOBYQA, dimensions); // "LN" means local optimization, no derivatives
+            nlopt::opt opt(nlopt::LN_COBYLA, dimensions); // "LN" means local optimization, no derivatives
 
             _objective.lowerBounds = std::vector<double>(dimensions);
             _objective.upperBounds = std::vector<double>(dimensions);
@@ -70,34 +99,57 @@ namespace PoseEstimation
 
             opt.set_min_objective(Objective::wrap, &_objective);
 
-            opt.set_xtol_rel(-1.0); // deactivate relative tolerance stopping criterion
-            opt.set_xtol_abs(xdelta.value<float>());  // stop when an optimization step changes all parameters by less than this value
-            opt.set_maxeval(iterations.value<int>());    // stop after so many iterations
+            // deactivate relative tolerance stopping criterion
+            opt.set_xtol_rel(-1.0);
+            // stop when an optimization step changes all parameters by less than this value
+            opt.set_xtol_abs(xdelta.value<float>());
+            // stop after so many iterations
+            opt.set_maxeval(iterations.value<int>());
 
             std::vector<double> x(dimensions);
-            Logger::debug("Initializing variables");
-            for (size_t i = 0; i < dimensions; ++i)
+            if (skipInitialization.value<bool>())
             {
-                // initialize variables
-                x[i] = _objective.lowerBounds[i]
-                        + alpha.value<float>() * (_objective.upperBounds[i] - _objective.lowerBounds[i]);
-            }
-
-            double minf;
-            nlopt::result result = opt.optimize(x, minf);
-            if (result > 0)
-            {
-                Logger::log(boost::format("Optimization finished successfully. Best performance: %d. Stopping criterion: %i")
-                            % (-minf) % result);
-                for (auto &assignment : _objective.bestAssignment)
+                for (size_t i = 0; i < dimensions; ++i)
                 {
-                    Logger::debug(boost::format("\t%s = %d") % assignment.first % assignment.second);
+                    // use existing settings
+                    x[i] = _objective.parameters[i]->numericalValue();
                 }
             }
             else
             {
-                Logger::warning(boost::format("Optimization failed. Performance: %d. Stopping criterion: %i")
+                Logger::debug("Initializing variables");
+                for (size_t i = 0; i < dimensions; ++i)
+                {
+                    // initialize variables
+                    x[i] = _objective.lowerBounds[i]
+                            + alpha.value<float>() * (_objective.upperBounds[i] - _objective.lowerBounds[i]);
+                }
+            }
+
+            double minf;
+            nlopt::result result;
+
+            if (enabled.value<bool>())
+            {
+                result = opt.optimize(x, minf);
+                if (result > 0)
+                {
+                    Logger::log(boost::format("Optimization finished successfully. Best performance: %d. Stopping criterion: %i")
                                 % (-minf) % result);
+                    for (auto &assignment : _objective.bestAssignment)
+                    {
+                        Logger::debug(boost::format("\t%s = %d") % assignment.first % assignment.second);
+                    }
+                }
+                else
+                {
+                    Logger::warning(boost::format("Optimization failed. Performance: %d. Stopping criterion: %i")
+                                    % (-minf) % result);
+                }
+            }
+            else
+            {
+                Logger::log("Optimization has been skipped (check opt_enabled).");
             }
 
             OptimizationResult optres;
@@ -113,15 +165,27 @@ namespace PoseEstimation
         OPT(OPT<PointT> &) = default;
         OPT(OPT<PointT> &&) = default;
 
-        OPT<PointT>& operator=(const OPT<PointT>&) & = default;
-        OPT<PointT>& operator=(OPT<PointT>&&) & = default;
+        OPT<PointT>& operator=(const OPT<PointT> &) & = default;
+        OPT<PointT>& operator=(OPT<PointT> &&) & = default;
 
         static ParameterCategory argumentCategory;
         PARAMETER_CATEGORY_GETTER(argumentCategory)
 
+        static Parameter enabled;
+
         static Parameter alpha;
         static Parameter iterations;
         static Parameter xdelta;
+        static Parameter skipInitialization;
+
+        static Parameter skipDescriptor;
+        static Parameter skipDownsampler;
+        static Parameter skipFeatureMatcher;
+        static Parameter skipKeypointExtractor;
+        static Parameter skipTransformationEstimator;
+        static Parameter skipPoseRefiner;
+        static Parameter skipMiscellaneous;        
+        static Parameter skipHypothesisVerifier;
 
     private:
         /**
@@ -146,12 +210,15 @@ namespace PoseEstimation
                     for (size_t i = 0; i < parameters.size(); ++i)
                     {
                         parameters[i]->setNumericalValue(x[i]);
-                        Logger::debug(boost::format("Setting %s = %d\t  (min: %d  max: %d)")
+                        Logger::debug(boost::format("Setting %s = %d\t  (prev: %s  min: %d  max: %d)")
                                       % parameters[i]->parseName()
                                       % x[i]
+                                      % (previous.empty() ? "N/A" : boost::lexical_cast<std::string>((float)previous[i]))
                                       % lowerBounds[i]
                                       % upperBounds[i]);
                     }
+
+                    previous = x;
 
                     // copy point clouds
                     PC<PointT> sourceCopy(source);
@@ -200,6 +267,7 @@ namespace PoseEstimation
                 size_t iteration;
                 std::vector<double> lowerBounds;
                 std::vector<double> upperBounds;
+                std::vector<double> previous;
                 Assignment bestAssignment;
                 double bestPerformance;
                 PipelineStats bestStats;
@@ -212,6 +280,13 @@ namespace PoseEstimation
     ParameterCategory OPT<PointT>::argumentCategory(
             "opt", "Non-Linear Optimization for Pipeline Module Parameters",
             PipelineModuleType::Miscellaneous);
+
+    template<typename PointT>
+    Parameter OPT<PointT>::enabled = Parameter(
+            "opt",
+            "enabled",
+            false,
+            "Whether to optimize pipeline module parameters");
 
     template<typename PointT>
     Parameter OPT<PointT>::alpha = Parameter(
@@ -234,6 +309,69 @@ namespace PoseEstimation
             "xdelta",
             0.5f,
             "Minimum allowed changed of all parameter values (stopping criterion)");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipInitialization = Parameter(
+            "opt",
+            "skip_init",
+            true,
+            "Skip initialization and begin with default parameter settings");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipDescriptor = Parameter(
+            "opt",
+            "skip_descriptor",
+            false,
+            "Skip optimization of feature description parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipDownsampler = Parameter(
+            "opt",
+            "skip_downsampler",
+            false,
+            "Skip optimization of downsampling parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipFeatureMatcher = Parameter(
+            "opt",
+            "skip_feature_matcher",
+            false,
+            "Skip optimization of feature matching parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipKeypointExtractor = Parameter(
+            "opt",
+            "skip_keypoint_extractor",
+            false,
+            "Skip optimization of keypoint extraction parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipTransformationEstimator = Parameter(
+            "opt",
+            "skip_transformation_estimator",
+            false,
+            "Skip optimization of transformation estimation parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipPoseRefiner = Parameter(
+            "opt",
+            "skip_pose_refiner",
+            false,
+            "Skip optimization of pose refinement parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipMiscellaneous = Parameter(
+            "opt",
+            "skip_misc",
+            false,
+            "Skip optimization of miscellaneous parameters");
+
+    template<typename PointT>
+    Parameter OPT<PointT>::skipHypothesisVerifier = Parameter(
+            "opt",
+            "skip_hypothesis_verifier",
+            true, //XXX
+            "Skip optimization of hypothesis verification parameters");
 
 
     typedef OPT<PointType> Optimizer;
