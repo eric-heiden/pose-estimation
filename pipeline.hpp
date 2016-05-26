@@ -387,35 +387,35 @@ namespace PoseEstimation
 
     template<typename DescriptorT, typename PointT>
     Parameter Pipeline<DescriptorT, PointT>::maxDescriptors = Parameter(
-            "opt",
+            "pipeline",
             "max_descs",
             300000,
             "Maximum allowable number of descriptors per cloud to be calculated");
 
     template<typename DescriptorT, typename PointT>
     Parameter Pipeline<DescriptorT, PointT>::performDownsampling = Parameter(
-            "opt",
+            "pipeline",
             "downsampling",
             true,
             "Whether to use the downsampling module while processing the pipeline");
 
     template<typename DescriptorT, typename PointT>
     Parameter Pipeline<DescriptorT, PointT>::performKeypointExtraction = Parameter(
-            "opt",
+            "pipeline",
             "keypoint",
             true,
             "Whether to use the keypoint extraction module while processing the pipeline");
 
     template<typename DescriptorT, typename PointT>
     Parameter Pipeline<DescriptorT, PointT>::performPoseRefinement = Parameter(
-            "opt",
+            "pipeline",
             "pose_refine",
             false, //XXX
             "Whether to use the pose refinement module while processing the pipeline");
 
     template<typename DescriptorT, typename PointT>
     Parameter Pipeline<DescriptorT, PointT>::performHypothesisVerification = Parameter(
-            "opt",
+            "pipeline",
             "hyp_ver",
             true,
             "Whether to use the hypothesis verification module while processing the pipeline");
