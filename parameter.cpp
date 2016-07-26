@@ -12,16 +12,21 @@
 using namespace PoseEstimation;
 using Json = nlohmann::json;
 
-std::map<std::string, Parameter*> Parameter::_allArgs = std::map<std::string, Parameter*>();
-std::map<std::string, std::vector<Parameter*> > Parameter::_categorized = std::map<std::string, std::vector<Parameter*> >();
-std::map<std::string, std::string> Parameter::_categories = std::map<std::string, std::string>();
-std::map<PipelineModuleType::Type, std::vector<std::string> > Parameter::_modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
-
 Parameter::Parameter(const std::string &category, const std::string &name,
                      const SupportedValue &value, const std::string &description,
                      std::initializer_list<std::shared_ptr<ParameterConstraint> > constraints)
     : _name(name), _description(description), _category(category), _value(value), _constraints(constraints)
 {
+    static bool firstTime = true;
+    if (firstTime)
+    {
+        firstTime = false;
+        _allArgs = std::map<std::string, Parameter*>();
+        _categorized = std::map<std::string, std::vector<Parameter*> >();
+        _categories = std::map<std::string, std::string>();
+        _modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
+    }
+
     const std::string id = parseName();
 
     if (!isValid())
@@ -42,6 +47,7 @@ Parameter::Parameter(const std::string &category, const std::string &name,
 
     if (_categories.find(category) == _categories.end())
     {
+        Logger::debug(boost::format("Adding category %s") % category);
         _categories[category] = "";
         _categorized[category] = std::vector<Parameter*>();
         if (_modules.find(PipelineModuleType::Miscellaneous) == _modules.end())
@@ -49,7 +55,7 @@ Parameter::Parameter(const std::string &category, const std::string &name,
         _modules[PipelineModuleType::Miscellaneous].push_back(category);
     }
     _categorized[category].push_back(this);
-    //Logger::debug(boost::format("Parameter %s has been initialized.") % id);
+    Logger::debug(boost::format("Parameter %s has been initialized.") % id);
 }
 
 std::string &Parameter::name()
@@ -85,7 +91,7 @@ double Parameter::numericalValue() const
         return (double)boost::get<float>(_value);
     if (_value.type() == typeid(bool))
         return (double)(int)boost::get<bool>(_value);
-    return std::nan("Type is not numerical");
+    return std::nan("Parameter type is not numerical");
 }
 
 bool Parameter::setNumericalValue(double value)
@@ -229,6 +235,7 @@ void Parameter::_display(int indent)
  */
 void Parameter::displayAll()
 {
+    Logger::debug(boost::format("There are %d modules and %d parameters") % _modules.size() % _allArgs.size());
     for (auto &&mit : _modules)
     {
         std::string moduleName = PipelineModuleType::str(mit.first);
@@ -450,9 +457,20 @@ int Parameter::_parse(int argc, char *argv[])
 void Parameter::_defineCategory(const std::string &name, const std::string &description,
                                 PipelineModuleType::Type moduleType)
 {
+    static bool firstTime = true;
+    if (firstTime)
+    {
+        firstTime = false;
+        _allArgs = std::map<std::string, Parameter*>();
+        _categorized = std::map<std::string, std::vector<Parameter*> >();
+        _categories = std::map<std::string, std::string>();
+        _modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
+        Logger::debug("Initialized static parameter category members.");
+    }
+
     Logger::debug(boost::format("Defining parameter category %s...") % name);
     if (_categories.find(name) == _categories.end() || _categories[name].empty())
-        _categories[name] = description;
+        _categories.insert({name, description});
     if (_modules.find(moduleType) == _modules.end())
         _modules[moduleType] = std::vector<std::string>();
 

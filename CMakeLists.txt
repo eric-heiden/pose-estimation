@@ -30,9 +30,9 @@ file(GLOB SOURCES
     optimization/*
 )
 
-add_subdirectory(test)
+#add_subdirectory(test)
 
-add_library(${PROJECT_NAME}_lib SHARED ${SOURCES})
+#add_library(${PROJECT_NAME}_lib SHARED ${SOURCES})
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 

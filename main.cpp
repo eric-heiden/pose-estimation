@@ -3,8 +3,8 @@
 #include <pcl/console/parse.h>
 
 #include "logger.h"
-#include "defaults.h"
 #include "parameter.h"
+#include "defaults.h"
 #include "pointcloud.h"
 #include "visualizer.h"
 #include "pipeline.hpp"

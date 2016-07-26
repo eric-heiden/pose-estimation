@@ -249,10 +249,15 @@ namespace PoseEstimation
         virtual void _display(int indent = 0);
         static std::string _type_name(const SupportedValue &v);
 
+        __attribute__((weak))
         static std::map<std::string, Parameter*> _allArgs;
+        __attribute__((weak))
         static std::map<std::string, std::vector<Parameter*> > _categorized;
+        __attribute__((weak))
         static std::map<std::string, std::string> _categories;
+        __attribute__((weak))
         static std::map<std::string, std::string> _unparsed;
+        __attribute__((weak))
         static std::map<PipelineModuleType::Type, std::vector<std::string> > _modules;
 
         template <typename T>
@@ -412,5 +417,12 @@ namespace PoseEstimation
         std::make_shared<ConstantConstraint>(ParameterConstraintType::GreaterThanOrEqual, min), \
         std::make_shared<ConstantConstraint>(ParameterConstraintType::LessThanOrEqual, max) \
     }
+
+    
+
+std::map<std::string, Parameter*> Parameter::_allArgs = std::map<std::string, Parameter*>();
+std::map<std::string, std::vector<Parameter*> > Parameter::_categorized = std::map<std::string, std::vector<Parameter*> >();
+std::map<std::string, std::string> Parameter::_categories = std::map<std::string, std::string>();
+std::map<PipelineModuleType::Type, std::vector<std::string> > Parameter::_modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
 
 }

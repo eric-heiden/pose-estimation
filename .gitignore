@@ -1,3 +1,5 @@
 *.user
 *.autosave
+~*
 doc/
+build/
