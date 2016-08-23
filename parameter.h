@@ -211,6 +211,14 @@ namespace PoseEstimation
         static Parameter *get(std::string parseName);
 
         /**
+         * @brief Updates value of a parameter identified by its name.
+         * @param parseName Globally identifying name, i.e. "<category>_<name>".
+         * @param value The value.
+         * @return True, if parameter with given parseName existed and was overwritten successfully.
+         */
+        static bool set(std::string parseName, SupportedValue value);
+
+        /**
          * @brief Retrieves all parameters under the given category name.
          * @param category The name of the category.
          * @return Parameters that are grouped under the given category.
@@ -267,7 +275,7 @@ namespace PoseEstimation
             int r = pcl::console::parse_argument(
                         argc,
                         argv,
-                        ("--"+parseName()).c_str(),
+                        ("--" + parseName()).c_str(),
                         arg);
             if (r >= 0)
                 _value = arg;

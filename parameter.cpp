@@ -38,8 +38,8 @@ Parameter::Parameter(const std::string &category, const std::string &name,
     if (_allArgs.find(id) != _allArgs.end())
     {
         _allArgs[id]->_value = value;
-        //Logger::debug(boost::format("Value of argument \"%1%\" has been updated to [%2%] %3%.")
-        //              % id % _type_name(value) % value);
+        Logger::debug(boost::format("Value of argument \"%1%\" has been updated to [%2%] %3%.")
+                      % id % _type_name(value) % value);
         return;
     }
     else
@@ -47,7 +47,7 @@ Parameter::Parameter(const std::string &category, const std::string &name,
 
     if (_categories.find(category) == _categories.end())
     {
-        //Logger::debug(boost::format("Adding category %s") % category);
+        Logger::debug(boost::format("Adding category %s") % category);
         _categories[category] = "";
         _categorized[category] = std::vector<Parameter*>();
         if (_modules.find(PipelineModuleType::Miscellaneous) == _modules.end())
@@ -55,7 +55,8 @@ Parameter::Parameter(const std::string &category, const std::string &name,
         _modules[PipelineModuleType::Miscellaneous].push_back(category);
     }
     _categorized[category].push_back(this);
-    //Logger::debug(boost::format("Parameter %s has been initialized.") % id);
+    Logger::debug(boost::format("Parameter \"%1%\" has been initialized with [%2%] %3%.")
+                  % id % _type_name(value) % value);
 }
 
 std::string &Parameter::name()
@@ -235,7 +236,7 @@ void Parameter::_display(int indent)
  */
 void Parameter::displayAll()
 {
-    //Logger::debug(boost::format("There are %d modules and %d parameters") % _modules.size() % _allArgs.size());
+    Logger::debug(boost::format("There are %d modules and %d parameters") % _modules.size() % _allArgs.size());
     for (auto &&mit : _modules)
     {
         std::string moduleName = PipelineModuleType::str(mit.first);
@@ -273,6 +274,14 @@ Parameter *Parameter::get(std::string parseName)
     if (_allArgs.find(parseName) == _allArgs.end())
         return NULL;
     return _allArgs[parseName];
+}
+
+bool Parameter::set(std::string parseName, SupportedValue value)
+{
+    Parameter *p = get(parseName);
+    if (!p)
+        return false;
+    return p->setValue(value);
 }
 
 std::vector<Parameter *> Parameter::getAll(const std::string &category)
@@ -446,9 +455,10 @@ int Parameter::_parse(int argc, char *argv[])
         return _parse_helper<std::string>(argc, argv);
     if (_value.type() == typeid(bool))
     {
-        if (pcl::console::find_switch(argc, argv, ("--" + _name).c_str()))
+        int activated = _parse_helper<int>(argc, argv);
+        if (activated == 1)
             _value = true;
-        else
+        else if (activated == 0)
             _value = false;
         return 1;
     }
@@ -465,10 +475,10 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
         _categorized = std::map<std::string, std::vector<Parameter*> >();
         _categories = std::map<std::string, std::string>();
         _modules = std::map<PipelineModuleType::Type, std::vector<std::string> >();
-        //Logger::debug("Initialized static parameter category members.");
+        Logger::debug("Initialized static parameter category members.");
     }
 
-    //Logger::debug(boost::format("Defining parameter category %s...") % name);
+    Logger::debug(boost::format("Defining parameter category %s...") % name);
     if (_categories.find(name) == _categories.end() || _categories[name].empty())
         _categories.insert({name, description});
     if (_modules.find(moduleType) == _modules.end())
@@ -493,7 +503,7 @@ void Parameter::_defineCategory(const std::string &name, const std::string &desc
                        name) == _modules[moduleType].end())
     {
         _modules[moduleType].push_back(name);
-        //Logger::debug(boost::format("Category %s has been defined.") % name);
+        Logger::debug(boost::format("Category %s has been defined.") % name);
     }
 }
 

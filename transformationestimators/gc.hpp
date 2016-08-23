@@ -73,7 +73,7 @@ namespace PoseEstimation
     Parameter GeometricConsistency<PointT, DescriptorT>::threshold = Parameter(
             "gc",
             "thresh",
-            1.26f,
+            0.8f,
             "Minimum cluster size",
             NUMERICAL_PARAMETER_RANGE(0.1, 1.0));
 }

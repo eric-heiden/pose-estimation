@@ -25,7 +25,8 @@ namespace PoseEstimation
     {
         friend class VisualizerObject;
     public:
-        static bool &enabled();
+        static bool enabled();
+        static void setEnabled(bool enabled = true);
 
         static VisualizerObject visualize(const PointCloud &pc);
         static VisualizerObject visualize(const PointCloud &pc, const PoseEstimation::Color &c);

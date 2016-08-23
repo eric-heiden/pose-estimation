@@ -56,16 +56,17 @@ int main(int argc, char **argv)
     }
 
     // move target cloud to the right to visualize source & target side by side
-    target.translate(1, 0, 0);    
+    //target.translate(0.5, 0.0, 0.0);
 
     Configuration config;
     Optimizer opt(source, target);
+
     Parameter::parseAll(argc, argv);
 
     //Parameter::loadAll("optimal_configuration.json");
     Parameter::saveAll();
 
-    Visualizer::enabled() = false;
+    Visualizer::setEnabled(false);
 
     config.useModule(PipelineModuleType::HypothesisVerifier, false);
 
@@ -80,10 +81,12 @@ int main(int argc, char **argv)
         Logger::debug(boost::format("Setting %s = %d") % assignment.first % assignment.second);
     }
 
-    Visualizer::enabled() = true;
+    Visualizer::setEnabled(true);
 
     config.useModule(PipelineModuleType::HypothesisVerifier, true);
-    // actual pose estimation pipeline
+    Parameter::set("pipeline_skip_te", false);
+
+    // actual pose estimation pipeline using the previously determined parameters
     config.run(source, target);
 
     Visualizer::visualize(source);

@@ -16,9 +16,14 @@ void VisualizerObject::setPointSize(double size)
                 size, _id);
 }
 
-bool &Visualizer::enabled()
+bool Visualizer::enabled()
 {
     return _enabled;
+}
+
+void Visualizer::setEnabled(bool enabled)
+{
+    _enabled = enabled;
 }
 
 VisualizerObject Visualizer::visualize(const PointCloud &pc)

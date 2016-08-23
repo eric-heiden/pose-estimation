@@ -43,7 +43,7 @@ namespace PoseEstimation
         OptimizationResult optimize(CF<PointT> config)
         {
             _objective.parameters.clear();
-            _objective.bestPerformance = 0;
+            _objective.bestPerformance = std::numeric_limits<double>::min();
             _objective.iteration = 0;
 
             #define IFF(skip, parameter, type) \
@@ -129,7 +129,9 @@ namespace PoseEstimation
             double minf;
             nlopt::result result;
 
-            if (enabled.value<bool>() || true)
+            Logger::error(boost::format("Optimization enabled? %1%") % enabled.value<bool>());
+
+            if (enabled.value<bool>())
             {
                 result = opt.optimize(x, minf);
                 if (result > 0)
@@ -143,13 +145,13 @@ namespace PoseEstimation
                 }
                 else
                 {
-                    Logger::warning(boost::format("Optimization failed. Performance: %d. Stopping criterion: %i")
-                                    % (-minf) % result);
+                    Logger::error(boost::format("Optimization failed. Performance: %d. Stopping criterion: %i")
+                                  % (-minf) % result);
                 }
             }
             else
             {
-                Logger::log("Optimization has been skipped (check opt_enabled).");
+                Logger::warning("Optimization has been skipped (check opt_enabled).");
             }
 
             OptimizationResult optres;
@@ -210,9 +212,9 @@ namespace PoseEstimation
                             //+ 0.03 * (stats.sourceKeypointsExtracted / MAX_POINTS)
                             //+ 0.03 * (stats.targetKeypointsExtracted / MAX_POINTS)
                             + 0.5 * stats.correspondencesFound / MAX_POINTS
-                            - stats.averageCorrespondenceDistance * 0.8
+                            //- stats.averageCorrespondenceDistance * 0.8
                             - stats.correspondenceSlopeVariance / 10.0
-                            + 3.0 * stats.transformationInstances.size();
+                            + .01 * stats.transformationInstances.size();
                 }
 
                 /**
@@ -231,7 +233,7 @@ namespace PoseEstimation
                     for (size_t i = 0; i < parameters.size(); ++i)
                     {
                         parameters[i]->setNumericalValue(x[i]);
-                        Logger::debug(boost::format("Setting %s = %d\t  (prev: %s  min: %d  max: %d)")
+                        Logger::debug(boost::format("Setting %s = %d\t  (was: %s  min: %d  max: %d)")
                                       % parameters[i]->parseName()
                                       % x[i]
                                       % (previous.empty() ? "N/A" : boost::lexical_cast<std::string>((float)previous[i]))
@@ -258,13 +260,14 @@ namespace PoseEstimation
                             bestAssignment[parameters[i]->parseName()] = x[i];
                         }
 
+                        bestPerformance = p;
                         bestStats = stats;
                     }
 
                     Logger::debug("+++ Detailed Performance Report +++");
                     stats.print();
                     Logger::log(boost::format("##### Finished Iteration %i. Performance: %d #####")
-                                % iteration % p);
+                                % iteration % -p);
                     return -p; // maximize performance, i.e. minimize -p
                 }
 

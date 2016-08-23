@@ -257,9 +257,10 @@ namespace PoseEstimation
             {
                 PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
                 PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
+                float weight = (*correspondences)[j].distance;
 
                 // draw line for each pair of clustered correspondences found between the model and the scene
-                Visualizer::visualize(model_point, scene_point, Color::random());
+                Visualizer::visualize(model_point, scene_point, Color::fromHSL(weight));
             }
 
             stats.averageCorrespondenceDistance = FeatureMatcher<DescriptorT>::averageDistance(correspondences);
@@ -285,12 +286,12 @@ namespace PoseEstimation
             {
                 correspondenceVectorVariance += (correspondenceVectors[j] - averageCorrespondenceVector).cwiseAbs2();
             }
+            delete correspondenceVectors;
             stats.correspondenceSlopeVariance = correspondenceVectorVariance.norm();
 
-            if (skipTransformationEstimation.value<bool>() || true)
+            if (skipTransformationEstimation.value<bool>())
             {
-                Logger::log("Skipping transformation estimation.");
-                stats.print();
+                Logger::warning("Skipping transformation estimation.");
                 return stats;
             }
 
@@ -327,7 +328,7 @@ namespace PoseEstimation
                         Logger::debug(boost::format("Instance #%1%:\n%2%") % (i+1) % transformations[i]);
                         PC<PointT> vpc(source);
                         vpc.transform(transformations[i]);
-                        VisualizerObject vpco = Visualizer::visualize(vpc, Color::YELLOW);
+                        VisualizerObject vpco = Visualizer::visualize(vpc, Color::random(0.5));
                         vpco.setPointSize(2.0);
                     }
                 }
