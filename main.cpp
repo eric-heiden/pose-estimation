@@ -56,15 +56,24 @@ int main(int argc, char **argv)
     }
 
     // move target cloud to the right to visualize source & target side by side
-    //target.translate(0.5, 0.0, 0.0);
+    target.translate(0.5, 0.0, 0.0);
 
     Configuration config;
     Optimizer opt(source, target);
 
     Parameter::parseAll(argc, argv);
 
-    //Parameter::loadAll("optimal_configuration.json");
-    Parameter::saveAll();
+    Parameter::loadAll("optimal_configuration2.json");
+    Parameter::set("opt_enabled", false);
+    Parameter::set("opt_skip_descriptor", true);
+    Parameter::set("opt_skip_downsampler", true);
+    Parameter::set("opt_skip_feature_matcher", true);
+    Parameter::set("opt_skip_keypoint_extractor", true);
+    Parameter::set("opt_skip_transformation_estimator", true);
+    Parameter::set("opt_skip_pose_refiner", true);
+    Parameter::set("opt_skip_misc", true);
+    Parameter::set("opt_skip_hypothesis_verifier", false);
+    //Parameter::saveAll();
 
     Visualizer::setEnabled(false);
 
@@ -73,7 +82,7 @@ int main(int argc, char **argv)
     Logger::tic("Optimization");
     OptimizationResult res = opt.optimize(config);
     Logger::toc("Optimization");
-    Parameter::saveAll("optimal_configuration.json"); // save optimal configuration
+    Parameter::saveAll("optimal_configuration3.json"); // save optimal configuration
 
     for (auto &assignment : res.bestAssignment)
     {

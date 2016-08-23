@@ -129,8 +129,6 @@ namespace PoseEstimation
             double minf;
             nlopt::result result;
 
-            Logger::error(boost::format("Optimization enabled? %1%") % enabled.value<bool>());
-
             if (enabled.value<bool>())
             {
                 result = opt.optimize(x, minf);
@@ -339,7 +337,7 @@ namespace PoseEstimation
             "opt",
             "skip_init",
             true,
-            "Skip initialization and begin with default parameter settings");
+            "Skip automatic parameter initialization using value boundaries and begin with existing parameter settings");
 
     template<typename PointT>
     Parameter OPT<PointT>::skipDescriptor = Parameter(

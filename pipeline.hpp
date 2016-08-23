@@ -257,7 +257,9 @@ namespace PoseEstimation
             {
                 PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
                 PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
+                float distance = (*correspondences)[j].distance;
                 float weight = (*correspondences)[j].distance;
+                Logger::log(boost::format("Weight: %.4f   Distance: %.4f") % weight % distance);
 
                 // draw line for each pair of clustered correspondences found between the model and the scene
                 Visualizer::visualize(model_point, scene_point, Color::fromHSL(weight));
@@ -470,6 +472,6 @@ namespace PoseEstimation
     Parameter Pipeline<DescriptorT, PointT>::skipTransformationEstimation = Parameter(
             "pipeline",
             "skip_te",
-            true,
+            false,
             "Skip transformation estimation and the following steps entirely, and only find feature correspondences.");
 }
