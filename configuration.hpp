@@ -36,10 +36,10 @@
 namespace PoseEstimation
 {
 
-#define DESCRIPTORS (FPFHFeatureDescriptor) \
+#define DESCRIPTORS (SHOTFeatureDescriptor) \
+                    (FPFHFeatureDescriptor) \
                     (RIFTFeatureDescriptor) \
                     (RSDFeatureDescriptor) \
-                    (SHOTFeatureDescriptor) \
                     (SpinImageFeatureDescriptor) \
                     (USCFeatureDescriptor)
 
@@ -240,7 +240,7 @@ namespace PoseEstimation
     template<typename PointT>
     EnumParameter CF<PointT>::descriptor = EnumParameter(
             "config", "descriptor",
-            { "FPFH", "RIFT", "RSD", "SHOT", "SI", "USC" },
+            { "SHOT", "FPFH", "RIFT", "RSD", "SI", "USC" },
             "Feature descriptor module");
 
     template<typename PointT>

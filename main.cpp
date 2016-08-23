@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     Optimizer opt(source, target);
     Parameter::parseAll(argc, argv);
 
-    Parameter::loadAll("optimal_configuration.json");
+    //Parameter::loadAll("optimal_configuration.json");
     Parameter::saveAll();
 
     Visualizer::enabled() = false;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
     Visualizer::enabled() = true;
 
-    //config.useModule(PipelineModuleType::HypothesisVerifier, true);
+    config.useModule(PipelineModuleType::HypothesisVerifier, true);
     // actual pose estimation pipeline
     config.run(source, target);
 

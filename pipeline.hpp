@@ -35,6 +35,7 @@ namespace PoseEstimation
 
         size_t correspondencesFound;
         double averageCorrespondenceDistance;
+        double correspondenceSlopeVariance;
 
         bool transformationSuccessful;
         std::vector<Eigen::Matrix4f> transformationInstances;
@@ -46,28 +47,12 @@ namespace PoseEstimation
               targetKeypointsExtracted(0),
               correspondencesFound(0),
               averageCorrespondenceDistance(std::numeric_limits<double>::max()),
+              correspondenceSlopeVariance(std::numeric_limits<double>::max()),
               transformationSuccessful(false)
         {}
 
         /**
-         * @brief Computes the performance value of the pipeline's outcome.
-         * @return The performance value (the higher the better).
-         */
-        double performance()
-        {
-            // actual transformation instances are weighted much higher
-            // so that we not only get a large number of keypoints
-            return 0.01 * (sourceDownsampledPoints / MAX_POINTS)
-                    + 0.01 * (targetDownsampledPoints / MAX_POINTS)
-                    + 0.03 * (sourceKeypointsExtracted / MAX_POINTS)
-                    + 0.03 * (targetKeypointsExtracted / MAX_POINTS)
-                    + 0.5 * correspondencesFound
-                    + (1.0 - averageCorrespondenceDistance / 30000.0)
-                    + 3.0 * transformationInstances.size();
-        }
-
-        /**
-         * @brief Prints the statistics in to the logger in DEBUG mode.
+         * @brief Logs the statistics in DEBUG mode.
          */
         void print()
         {
@@ -82,6 +67,7 @@ namespace PoseEstimation
 
             _PRINT_PROPERTY(correspondencesFound);
             _PRINT_PROPERTY(averageCorrespondenceDistance);
+            _PRINT_PROPERTY(correspondenceSlopeVariance);
 
             _PRINT_PROPERTY(transformationSuccessful);
             _PRINT_PROPERTY(transformationInstances.size());
@@ -218,6 +204,7 @@ namespace PoseEstimation
             {
                 source_keypoints = PclPointCloud::Ptr(source.cloud());
                 target_keypoints = PclPointCloud::Ptr(target.cloud());
+                Logger::log("Skipping keypoint extraction.");
             }
 
             stats.sourceKeypointsExtracted = source_keypoints->size();
@@ -259,7 +246,14 @@ namespace PoseEstimation
             pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
             _featureMatcher->match(source_features, target_features, correspondences);
 
-            for (size_t j = 0; j < std::min(correspondences->size(), (size_t)200); ++j) // limit the number of displayed corrs.
+            const size_t MAX_DISPLAYED_CORRS = 300;
+            if (correspondences->size() > MAX_DISPLAYED_CORRS)
+            {
+                Logger::warning(boost::format("Displaying only %i out of %i correspondences.")
+                                % MAX_DISPLAYED_CORRS % correspondences->size());
+            }
+
+            for (size_t j = 0; j < std::min(correspondences->size(), MAX_DISPLAYED_CORRS); ++j) // limit the number of displayed corrs.
             {
                 PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
                 PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
@@ -270,6 +264,35 @@ namespace PoseEstimation
 
             stats.averageCorrespondenceDistance = FeatureMatcher<DescriptorT>::averageDistance(correspondences);
             stats.correspondencesFound = correspondences->size();
+
+            // compute variance of correspondence vectors
+            Eigen::Vector3d *correspondenceVectors = new Eigen::Vector3d[correspondences->size()];
+            Eigen::Vector3d averageCorrespondenceVector;
+            for (size_t j = 0; j < correspondences->size(); ++j)
+            {
+                PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
+                PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
+
+                correspondenceVectors[j] = Eigen::Vector3d(
+                            scene_point.x - model_point.x,
+                            scene_point.y - model_point.y,
+                            scene_point.z - model_point.z).normalized();
+                averageCorrespondenceVector += correspondenceVectors[j];
+            }
+            averageCorrespondenceVector /= (double)correspondences->size();
+            Eigen::Vector3d correspondenceVectorVariance;
+            for (size_t j = 0; j < correspondences->size(); ++j)
+            {
+                correspondenceVectorVariance += (correspondenceVectors[j] - averageCorrespondenceVector).cwiseAbs2();
+            }
+            stats.correspondenceSlopeVariance = correspondenceVectorVariance.norm();
+
+            if (skipTransformationEstimation.value<bool>() || true)
+            {
+                Logger::log("Skipping transformation estimation.");
+                stats.print();
+                return stats;
+            }
 
             // transformation estimation
             Logger::log(boost::format("%s...")
@@ -282,7 +305,6 @@ namespace PoseEstimation
                         correspondences, transformations);
             Logger::debug(boost::format("Transformation estimation successfull? %1%") % tes);
 
-
             stats.transformationSuccessful = tes;
             stats.transformationInstances = transformations;
             //_removeDuplicates(transformations);
@@ -293,7 +315,14 @@ namespace PoseEstimation
 
                 if (!transformations.empty())
                 {
-                    for (size_t i = 0; i < std::min(transformations.size(), (size_t)20); i++) // limit number of displayed instances
+                    const size_t MAX_DISPLAYED_INSTANCES = 20;
+                    if (transformations.size() > MAX_DISPLAYED_INSTANCES)
+                    {
+                        Logger::warning(boost::format("Displaying only %i out of %i instances.")
+                                        % MAX_DISPLAYED_INSTANCES % transformations.size());
+                    }
+
+                    for (size_t i = 0; i < std::min(transformations.size(), MAX_DISPLAYED_INSTANCES); i++) // limit number of displayed instances
                     {
                         Logger::debug(boost::format("Instance #%1%:\n%2%") % (i+1) % transformations[i]);
                         PC<PointT> vpc(source);
@@ -317,6 +346,10 @@ namespace PoseEstimation
                     Logger::debug(boost::format("\tRefined? %1%") % refined);
                 }
             }
+            else
+            {
+                Logger::log("Skipping pose refinement.");
+            }
 
             // hypothesis verification
             if (performHypothesisVerification.value<bool>() && !transformations.empty())
@@ -337,19 +370,31 @@ namespace PoseEstimation
                     ++hvc;
                 }
             }
+            else
+            {
+                Logger::log("Skipping hypothesis verification.");
+            }
 
             return stats;
         }
 
+        __attribute__((weak))
         static ParameterCategory argumentCategory;
         PARAMETER_CATEGORY_GETTER(argumentCategory)
 
+        __attribute__((weak))
         static Parameter maxDescriptors;
 
+        __attribute__((weak))
         static Parameter performDownsampling;
+        __attribute__((weak))
         static Parameter performKeypointExtraction;
+        __attribute__((weak))
         static Parameter performPoseRefinement;
+        __attribute__((weak))
         static Parameter performHypothesisVerification;
+        __attribute__((weak))
+        static Parameter skipTransformationEstimation;
 
     private:
         std::shared_ptr<FeatureDescriptor<PointT, DescriptorT> > _featureDescriptor;
@@ -419,4 +464,11 @@ namespace PoseEstimation
             "hyp_ver",
             true,
             "Whether to use the hypothesis verification module while processing the pipeline");
+
+    template<typename DescriptorT, typename PointT>
+    Parameter Pipeline<DescriptorT, PointT>::skipTransformationEstimation = Parameter(
+            "pipeline",
+            "skip_te",
+            true,
+            "Skip transformation estimation and the following steps entirely, and only find feature correspondences.");
 }

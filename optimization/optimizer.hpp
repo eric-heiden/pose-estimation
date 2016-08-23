@@ -129,7 +129,7 @@ namespace PoseEstimation
             double minf;
             nlopt::result result;
 
-            if (enabled.value<bool>())
+            if (enabled.value<bool>() || true)
             {
                 result = opt.optimize(x, minf);
                 if (result > 0)
@@ -194,6 +194,27 @@ namespace PoseEstimation
         class Objective
         {
             public:
+                static const size_t MAX_POINTS = 640 * 480; // Kinect's resolution
+
+                /**
+                 * @brief Computes the performance value of the pipeline's outcome.
+                 * @param stats The pipeline's outcome statistics.
+                 * @return The performance value (the higher the better).
+                 */
+                double performance(PipelineStats &stats)
+                {
+                    // actual transformation instances are weighted much higher
+                    // so that we don't only get a large number of keypoints
+                    return 0.01 * (stats.sourceDownsampledPoints / MAX_POINTS)
+                            + 0.01 * (stats.targetDownsampledPoints / MAX_POINTS)
+                            //+ 0.03 * (stats.sourceKeypointsExtracted / MAX_POINTS)
+                            //+ 0.03 * (stats.targetKeypointsExtracted / MAX_POINTS)
+                            + 0.5 * stats.correspondencesFound / MAX_POINTS
+                            - stats.averageCorrespondenceDistance * 0.8
+                            - stats.correspondenceSlopeVariance / 10.0
+                            + 3.0 * stats.transformationInstances.size();
+                }
+
                 /**
                  * @brief Computes the objective function value for the given variables.
                  * @param x The variables.
@@ -228,7 +249,7 @@ namespace PoseEstimation
                     PipelineStats stats = configuration.run(sourceCopy, targetCopy);
 
                     // compute performance
-                    double p = stats.performance();
+                    double p = performance(stats);
                     if (p > bestPerformance)
                     {
                         // store best assignment
@@ -285,7 +306,7 @@ namespace PoseEstimation
     Parameter OPT<PointT>::enabled = Parameter(
             "opt",
             "enabled",
-            false,
+            true,
             "Whether to optimize pipeline module parameters");
 
     template<typename PointT>
@@ -308,7 +329,7 @@ namespace PoseEstimation
             "opt",
             "xdelta",
             0.5f,
-            "Minimum allowed changed of all parameter values (stopping criterion)");
+            "Minimum allowed change of all parameter values (stopping criterion)");
 
     template<typename PointT>
     Parameter OPT<PointT>::skipInitialization = Parameter(

@@ -56,11 +56,11 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::useColor = Parameter(
-            "SHOT", "color", (bool)false, "Consider color information");
+            "SHOT", "color", (bool)true, "Consider color information");
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::searchRadius = Parameter(
-            "SHOT", "search_r", (float)15.0f, "Search radius for finding neighbors",
+            "SHOT", "search_r", (float)20.0f, "Search radius for finding neighbors",
             { std::make_shared<VariableConstraint>(
               ParameterConstraintType::GreaterThan, "pc_normal_nn")
             });
