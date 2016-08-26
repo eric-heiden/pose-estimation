@@ -4,7 +4,6 @@
 
 #include "logger.h"
 #include "parameter.h"
-#include "defaults.h"
 #include "pointcloud.h"
 #include "visualizer.h"
 #include "pipeline.hpp"

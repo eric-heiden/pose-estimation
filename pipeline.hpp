@@ -4,16 +4,17 @@
 #include <map>
 
 #include "types.h"
-#include "defaults.h"
 #include "logger.h"
 #include "parameter.h"
 #include "pointcloud.h"
 #include "downsampling.hpp"
 #include "keypointextraction.hpp"
+#include "featuredescription.hpp"
 #include "featurematching.hpp"
-#include "visualizer.h"
+#include "transformationestimation.hpp"
 #include "hypothesisverification.hpp"
 #include "poserefinement.hpp"
+#include "visualizer.h"
 
 /**
  * @brief Namespace for Pose Estimation
