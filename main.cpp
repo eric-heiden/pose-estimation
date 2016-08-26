@@ -4,7 +4,6 @@
 
 #include "logger.h"
 #include "parameter.h"
-#include "defaults.h"
 #include "pointcloud.h"
 #include "visualizer.h"
 #include "pipeline.hpp"
@@ -21,7 +20,7 @@ void showHelp(char *appname)
     std::cout << "*                             Pose Estimation                             *" << std::endl;
     std::cout << "*                                                                         *" << std::endl;
     std::cout << "***************************************************************************" << std::endl;
-    std::cout << "Usage: " << *appname << " source_filename.pcd target_filename.pcd" << std::endl << std::endl;
+    std::cout << "Usage: " << *appname << " (--folder foldername)|source_filename.pcd target_filename.pcd" << std::endl << std::endl;
     Parameter::displayAll();
 }
 
