@@ -39,7 +39,7 @@ VisualizerObject Visualizer::visualize(const PointCloud &pc)
     if (!_enabled)
         return VisualizerObject();
 
-    Logger::log(boost::format("visualizing %d points") % pc.cloud()->points.size());
+    //Logger::log(boost::format("visualizing %d points") % pc.cloud()->points.size());
     VisualizerObject ob(object_name());
     _instance.viewer()->addPointCloud(pc.cloud(), ob._id);
     return ob;

@@ -27,6 +27,7 @@ void showHelp(char *appname)
 
 int main(int argc, char **argv)
 {    
+    pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
     Optimizer::argumentCategory.parameters();
     Configuration::argumentCategory.parameters();
 
