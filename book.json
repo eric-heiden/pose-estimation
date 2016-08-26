@@ -1,0 +1,576 @@
+{
+    "configuration": [
+        {
+            "categories": [
+                {
+                    "description": "Downsampling using uniform filtering",
+                    "name": "uniformdown",
+                    "parameters": [
+                        {
+                            "description": "Sample size, constraints: (>= 1), (<= 10)",
+                            "name": "size",
+                            "value": 3.10799694061279
+                        }
+                    ]
+                },
+                {
+                    "description": "Downsampling using Voxel grid filtering",
+                    "name": "voxelgrid",
+                    "parameters": [
+                        {
+                            "description": "Leaf size of the voxel grid, constraints: (>= 1), (<= 10)",
+                            "name": "size",
+                            "value": 3.000000000000000
+                        }
+                    ]
+                }
+            ],
+            "module": "Downsampler"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Keypoint extraction using Uniform Sampling",
+                    "name": "uniform",
+                    "parameters": [
+                        {
+                            "description": "Search radius for the uniform keypoint extraction",
+                            "name": "r",
+                            "value": 8.005557060241699
+                        }
+                    ]
+                },
+                {
+                    "description": "Keypoint extraction using Intrinsic Shape Signatures (ISS)",
+                    "name": "iss",
+                    "parameters": [
+                        {
+                            "description": "Number of threads to use for ISS keypoint extraction",
+                            "name": "threads",
+                            "value": 4
+                        },
+                        {
+                            "description": "Minimum number of neighbors to consider for ISS keypoint extraction",
+                            "name": "nn",
+                            "value": 3.000000000000000
+                        },
+                        {
+                            "description": "ISS Threshold 21",
+                            "name": "thresh21",
+                            "value": 0.975000023841858
+                        },
+                        {
+                            "description": "ISS Threshold 32",
+                            "name": "thresh32",
+                            "value": 0.975000023841858
+                        },
+                        {
+                            "description": "Salient radius for ISS keypoint extraction",
+                            "name": "salient_r",
+                            "value": 3.000000000000000
+                        },
+                        {
+                            "description": "Non maxima suppression radius for ISS keypoint extraction",
+                            "name": "nonmax_r",
+                            "value": 8.000000000000000
+                        }
+                    ]
+                }
+            ],
+            "module": "KeypointExtractor"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Feature description using Unique Shape Context (USC)",
+                    "name": "USC",
+                    "parameters": [
+                        {
+                            "description": "Search radius for finding neighbors, constraints: (> pc_normal_nn)",
+                            "name": "search_r",
+                            "value": 25.000000000000000
+                        },
+                        {
+                            "description": "Minimum radius of the search sphere",
+                            "name": "min_r",
+                            "value": 5.000000000000000
+                        },
+                        {
+                            "description": "Points within this radius are used to calculate the local point density",
+                            "name": "density_r",
+                            "value": 10.000000000000000
+                        },
+                        {
+                            "description": "Local Reference Frame (LRF) radius of USC descriptor",
+                            "name": "LRF_r",
+                            "value": 10.000000000000000
+                        }
+                    ]
+                },
+                {
+                    "description": "Feature description using Spin Images (SI)",
+                    "name": "SI",
+                    "parameters": [
+                        {
+                            "description": "Search radius for finding neighbors, constraints: (> pc_normal_nn)",
+                            "name": "search_r",
+                            "value": 5.000000000000000
+                        }
+                    ]
+                },
+                {
+                    "description": "Feature description using Radius-based Surface Descriptor (RSD)",
+                    "name": "RSD",
+                    "parameters": [
+                        {
+                            "description": "Search radius for finding neighbors, constraints: (> pc_normal_nn)",
+                            "name": "search_r",
+                            "value": 5.000000000000000
+                        },
+                        {
+                            "description": "Maximum radius, above which everything can be considered planar (should be 10-20 times RSD_search_r)",
+                            "name": "plane_r",
+                            "value": 30.000000000000000
+                        },
+                        {
+                            "description": "Whether to save histograms",
+                            "name": "save_hist",
+                            "value": false
+                        }
+                    ]
+                },
+                {
+                    "description": "Feature description using Rotation Invariant Feature Transform (RIFT)",
+                    "name": "RIFT",
+                    "parameters": [
+                        {
+                            "description": "Search radius for finding neighbors for normal estimation",
+                            "name": "normal_nn",
+                            "value": 20.000000000000000
+                        },
+                        {
+                            "description": "Search radius for intensity gradient computation",
+                            "name": "gradient_r",
+                            "value": 50.000000000000000
+                        },
+                        {
+                            "description": "Search radius for finding neighbors, constraints: (> pc_normal_nn)",
+                            "name": "search_r",
+                            "value": 50.000000000000000
+                        }
+                    ]
+                },
+                {
+                    "description": "Feature description using Fast Point Feature Histogram (FPFH)",
+                    "name": "FPFH",
+                    "parameters": [
+                        {
+                            "description": "Search radius for finding neighbors, constraints: (> pc_normal_nn)",
+                            "name": "search_r",
+                            "value": 33.409999847412109
+                        }
+                    ]
+                },
+                {
+                    "description": "Feature description using Signature of Histograms of OrienTations (SHOT)",
+                    "name": "SHOT",
+                    "parameters": [
+                        {
+                            "description": "Consider color information",
+                            "name": "color",
+                            "value": true
+                        },
+                        {
+                            "description": "Search radius for finding neighbors, constraints: (> pc_normal_nn)",
+                            "name": "search_r",
+                            "value": 15.0
+                        },
+                        {
+                            "description": "Local Reference Frame (LRF) radius of SHOT descriptor",
+                            "name": "LRF_r",
+                            "value": 10.0
+                        }
+                    ]
+                }
+            ],
+            "module": "FeatureDescriptor"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Feature matching using Kd-Trees",
+                    "name": "kdmatch",
+                    "parameters": [
+                        {
+                            "description": "Top percentage of correspondence distances that are considered, constraints: (>= 0.1), (<= 1)",
+                            "name": "thresh",
+                            "value": 0.3
+                        }
+                    ]
+                }
+            ],
+            "module": "FeatureMatcher"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Pose refinement using Iterative Closest Point",
+                    "name": "icp",
+                    "parameters": [
+                        {
+                            "description": "Maximum distance threshold between two correspondent points in source <-> target",
+                            "name": "corrs_thresh",
+                            "value": 2.000000000000000
+                        },
+                        {
+                            "description": "Maximum number of iterations",
+                            "name": "iter",
+                            "value": 50
+                        },
+                        {
+                            "description": "Maximum allowable difference between two consecutive transformations",
+                            "name": "trans_eps",
+                            "value": 0.000000010000000
+                        },
+                        {
+                            "description": "Maximum allowed Euclidean error between two consecutive steps in the ICP loop",
+                            "name": "fit_eps",
+                            "value": 1.000000000000000
+                        }
+                    ]
+                },
+                {
+                    "description": "Pose refinement using Normal Distributions Transform",
+                    "name": "ndt",
+                    "parameters": [
+                        {
+                            "description": "Minimum allowable difference between two consecutive transformations",
+                            "name": "trans_eps",
+                            "value": 0.000099999997474
+                        },
+                        {
+                            "description": "Maximum step size for More-Thuente line search",
+                            "name": "step",
+                            "value": 0.050000000745058
+                        },
+                        {
+                            "description": "Resolution of NDT grid structure (VoxelGridCovariance)",
+                            "name": "res",
+                            "value": 0.009999999776483
+                        },
+                        {
+                            "description": "Maximum number of iterations",
+                            "name": "iter",
+                            "value": 2
+                        }
+                    ]
+                }
+            ],
+            "module": "PoseRefiner"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Transformation estimation using Geometric Consistency (Correspondence Grouping)",
+                    "name": "gc",
+                    "parameters": [
+                        {
+                            "description": "Consensus set resolution, constraints: (>= 1), (<= 10)",
+                            "name": "resolution",
+                            "value": 1.929058790206909
+                        },
+                        {
+                            "description": "Minimum cluster size, constraints: (>= 0.1), (<= 1)",
+                            "name": "thresh",
+                            "value": 0.371598035097122
+                        }
+                    ]
+                },
+                {
+                    "description": "Transformation estimation using Singular Value Decomposition (SVD)",
+                    "name": "svd",
+                    "parameters": []
+                },
+                {
+                    "description": "Transformation estimation using prerejective RANSAC",
+                    "name": "ransac",
+                    "parameters": [
+                        {
+                            "description": "Maximum number of iterations",
+                            "name": "iter",
+                            "value": 50000
+                        },
+                        {
+                            "description": "Number of points to sample for generating/prerejecting a pose",
+                            "name": "samples",
+                            "value": 3
+                        },
+                        {
+                            "description": "Number of nearest features to use",
+                            "name": "features",
+                            "value": 5
+                        },
+                        {
+                            "description": "Polygonal edge length similarity threshold",
+                            "name": "sim_thresh",
+                            "value": 0.899999976158142
+                        },
+                        {
+                            "description": "Maximum correspondence distance for inlier consideration",
+                            "name": "corr_thresh",
+                            "value": 2.500000000000000
+                        },
+                        {
+                            "description": "Required inlier fraction for accepting a pose hypothesis",
+                            "name": "hyp_thresh",
+                            "value": 0.250000000000000
+                        }
+                    ]
+                },
+                {
+                    "description": "Transformation estimation using Hough 3D Voting (Correspondence Grouping)",
+                    "name": "hough",
+                    "parameters": [
+                        {
+                            "description": "Size per bin into the Hough space",
+                            "name": "bin_size",
+                            "value": 5.10000000000000
+                        },
+                        {
+                            "description": "Minimum number of votes in the Hough space needed to infer the presence of a model instance into the scene cloud",
+                            "name": "thresh",
+                            "value": 5.000000000000000
+                        }
+                    ]
+                }
+            ],
+            "module": "TransformationEstimator"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Local Reference Frame Estimation using BOrder Aware Repeatable Directions (BOARD)",
+                    "name": "BOARD",
+                    "parameters": [
+                        {
+                            "description": "Search and account for holes in the margin of the support",
+                            "name": "holes",
+                            "value": true
+                        },
+                        {
+                            "description": "Search radius of BOARD LRF estimation",
+                            "name": "search_r",
+                            "value": 10.000000000000000
+                        }
+                    ]
+                }
+            ],
+            "module": "LocalReferenceFrameEstimator"
+        },
+        {
+            "categories": [
+                {
+                    "description": "Global Hypothesis Verification",
+                    "name": "hv",
+                    "parameters": [
+                        {
+                            "description": "Inlier threshold, constraints: (>= 0), (<= 1)",
+                            "name": "inlier_thresh",
+                            "value": 0.004577426239848
+                        },
+                        {
+                            "description": "Occlusion threshold, constraints: (>= 0), (<= 1)",
+                            "name": "occlusion_thresh",
+                            "value": 0.008309698663652
+                        },
+                        {
+                            "description": "Regularizer value",
+                            "name": "regularizer",
+                            "value": 2.239362955093384
+                        },
+                        {
+                            "description": "Clutter radius, constraints: (>= 0), (<= 1)",
+                            "name": "clutter_r",
+                            "value": 0.019858159124851
+                        },
+                        {
+                            "description": "Clutter regularizer",
+                            "name": "clutter_regularizer",
+                            "value": 1.154845833778381
+                        },
+                        {
+                            "description": "Whether to perform clutter detection",
+                            "name": "clutter",
+                            "value": false
+                        },
+                        {
+                            "description": "Search radius for normal estimation, constraints: (>= 0), (<= 1)",
+                            "name": "normal_r",
+                            "value": 0.020419573411345
+                        }
+                    ]
+                }
+            ],
+            "module": "HypothesisVerifier"
+        },
+        {
+            "categories": [
+                {
+                    "description": "",
+                    "name": "opt",
+                    "parameters": [
+                        {
+                            "description": "Skip optimization of feature description parameters",
+                            "name": "skip_descriptor",
+                            "value": true
+                        },
+                        {
+                            "description": "Skip optimization of downsampling parameters",
+                            "name": "skip_downsampler",
+                            "value": true
+                        },
+                        {
+                            "description": "Skip optimization of feature matching parameters",
+                            "name": "skip_feature_matcher",
+                            "value": true
+                        },
+                        {
+                            "description": "Skip optimization of keypoint extraction parameters",
+                            "name": "skip_keypoint_extractor",
+                            "value": true
+                        },
+                        {
+                            "description": "Skip optimization of transformation estimation parameters",
+                            "name": "skip_transformation_estimator",
+                            "value": false
+                        },
+                        {
+                            "description": "Skip optimization of pose refinement parameters",
+                            "name": "skip_pose_refiner",
+                            "value": true
+                        },
+                        {
+                            "description": "Skip optimization of hypothesis verification parameters",
+                            "name": "skip_hypothesis_verifier",
+                            "value": true
+                        },
+                        {
+                            "description": "Skip optimization of miscellaneous parameters",
+                            "name": "skip_misc",
+                            "value": true
+                        },
+                        {
+                            "description": "Minimum allowed change of all parameter values (stopping criterion)",
+                            "name": "xdelta",
+                            "value": 0.500000000000000
+                        },
+                        {
+                            "description": "Maximum number of iterations (stopping criterion)",
+                            "name": "iterations",
+                            "value": 40
+                        },
+                        {
+                            "description": "Skip automatic parameter initialization using value boundaries and begin with existing parameter settings",
+                            "name": "skip_init",
+                            "value": true
+                        },
+                        {
+                            "description": "Relative parameter value during initialization in the corresponding value range, constraints: (>= 0), (<= 1)",
+                            "name": "alpha",
+                            "value": 0.200000002980232
+                        },
+                        {
+                            "description": "Whether to optimize pipeline module parameters",
+                            "name": "enabled",
+                            "value": false
+                        }
+                    ]
+                },
+                {
+                    "description": "",
+                    "name": "config",
+                    "parameters": [
+                        {
+                            "description": "Feature descriptor module, possible values: FPFH|RIFT|RSD|SHOT|SI|USC",
+                            "name": "descriptor",
+                            "value": "SHOT"
+                        },
+                        {
+                            "description": "Transformation estimator module, possible values: gc|hough|ransac|svd",
+                            "name": "transformation_estimator",
+                            "value": "gc"
+                        },
+                        {
+                            "description": "Downsampler module, possible values: uniformdown|voxelgrid",
+                            "name": "downsampler",
+                            "value": "uniformdown"
+                        },
+                        {
+                            "description": "Feature matcher module, possible values: kdmatch",
+                            "name": "feature_matcher",
+                            "value": "kdmatch"
+                        },
+                        {
+                            "description": "Keypoint extractor module, possible values: iss|uniform",
+                            "name": "keypoint_extractor",
+                            "value": "uniform"
+                        },
+                        {
+                            "description": "Iterative pose refinement module, possible values: icp|ndt",
+                            "name": "poserefiner",
+                            "value": "icp"
+                        }
+                    ]
+                },
+                {
+                    "description": "",
+                    "name": "pipeline",
+                    "parameters": [
+                        {
+                            "description": "Whether to use the downsampling module while processing the pipeline",
+                            "name": "downsampling",
+                            "value": true
+                        },
+                        {
+                            "description": "Whether to use the keypoint extraction module while processing the pipeline",
+                            "name": "keypoint",
+                            "value": true
+                        },
+                        {
+                            "description": "Whether to use the pose refinement module while processing the pipeline",
+                            "name": "pose_refine",
+                            "value": false
+                        },
+                        {
+                            "description": "Whether to use the hypothesis verification module while processing the pipeline",
+                            "name": "hyp_ver",
+                            "value": true
+                        },
+                        {
+                            "description": "Maximum allowable number of descriptors per cloud to be calculated",
+                            "name": "max_descs",
+                            "value": 300000
+                        },
+                        {
+                            "description": "Skip transformation estimation and the following steps entirely, and only find feature correspondences.",
+                            "name": "skip_te",
+                            "value": false
+                        }
+                    ]
+                },
+                {
+                    "description": "Point Cloud computations",
+                    "name": "pc",
+                    "parameters": [
+                        {
+                            "description": "Search radius of nearest neighbor normal estimation, constraints: (>= 3), (<= 20)",
+                            "name": "normal_nn",
+                            "value": 9.725000381469727
+                        }
+                    ]
+                }
+            ],
+            "module": "Miscellaneous"
+        }
+    ]
+}
