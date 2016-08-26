@@ -15,6 +15,7 @@ namespace PoseEstimation
         friend class Visualizer;
     public:
         void setPointSize(double size);
+        void setOpacity(double opacity);
 
     private:
         VisualizerObject(std::string id = "N/A");

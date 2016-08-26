@@ -35,10 +35,10 @@ namespace PoseEstimation
             _lrfEstimator.estimate(source, source_keypoints, source_lrf);
             _lrfEstimator.estimate(target, target_keypoints, target_lrf);
 
-            _hough.setHoughBinSize(binSize.value<float>());
+            _hough.setHoughBinSize(binSize.value<float>() * source.resolution());
             _hough.setHoughThreshold(threshold.value<float>());
             _hough.setUseInterpolation(true);
-            _hough.setUseDistanceWeight(false);
+            _hough.setUseDistanceWeight(true);
 
             _hough.setInputCloud(source_keypoints);
             _hough.setInputRf(source_lrf);

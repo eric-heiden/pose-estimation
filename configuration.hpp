@@ -116,6 +116,7 @@ namespace PoseEstimation
             _appendParameters(_moduleParameters(featureMatcher), ps);
             _appendParameters(_moduleParameters(keypointExtractor), ps);
             _appendParameters(_moduleParameters(transformationEstimator), ps);
+            _appendParameters(_moduleParameters(poseRefiner), ps);
 
             return ps;
         }

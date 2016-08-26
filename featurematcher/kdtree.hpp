@@ -37,7 +37,7 @@ namespace PoseEstimation
                 if (!representation.isValid(source_descriptors->at(i))) // skip NaNs
                 {
                     ++skipped;
-                    //continue;
+                    continue;
                 }
 
                 // find the single closest descriptor
@@ -72,11 +72,12 @@ namespace PoseEstimation
             std::sort(correspondences->begin(), correspondences->end(), _compareCorrespondences);
 
             // remove correspondences that are not within the given percentage
-            int top = (1.0f - matchThreshold.value<float>()) * correspondences->size();
+            const size_t total = correspondences->size();
+            const size_t top = (size_t)(matchThreshold.value<float>() * correspondences->size());
             correspondences->erase(correspondences->begin() + top, correspondences->end());
 
-            Logger::debug(boost::format("Found %d correspondences in the top %.2f%% closest distance range.")
-                          % correspondences->size() % (matchThreshold.value<float>() * 100.0f));
+            Logger::debug(boost::format("Found %i correspondences in the top %.2f%% closest distance range out of %i total correspondences.")
+                          % correspondences->size() % (matchThreshold.value<float>() * 100.0f) % total);
             Logger::debug(boost::format("Average correspondence distance: %d") % (sum/number));
         }
 
@@ -88,7 +89,7 @@ namespace PoseEstimation
     private:
         static bool _compareCorrespondences(const pcl::Correspondence &l, const pcl::Correspondence &r)
         {
-            return l.distance > r.distance;
+            return l.distance < r.distance;
         }
     };
 
@@ -101,7 +102,7 @@ namespace PoseEstimation
     Parameter KdTreeFeatureMatcher<DescriptorT>::matchThreshold = Parameter(
                 "kdmatch",
                 "thresh",
-                (float)0.424f,
+                (float)1.0f,
                 "Top percentage of correspondence distances that are considered",
                 NUMERICAL_PARAMETER_RANGE(0.1, 1.0));
 }

@@ -135,7 +135,7 @@ namespace PoseEstimation
                 if (result > 0)
                 {
                     Logger::log(boost::format("Optimization finished successfully. Best performance: %d. Stopping criterion: %i")
-                                % (-minf) % result);
+                                % (minf) % result);
                     for (auto &assignment : _objective.bestAssignment)
                     {
                         Logger::debug(boost::format("\t%s = %d") % assignment.first % assignment.second);
@@ -144,7 +144,7 @@ namespace PoseEstimation
                 else
                 {
                     Logger::error(boost::format("Optimization failed. Performance: %d. Stopping criterion: %i")
-                                  % (-minf) % result);
+                                  % (minf) % result);
                 }
             }
             else
@@ -258,7 +258,6 @@ namespace PoseEstimation
                             bestAssignment[parameters[i]->parseName()] = x[i];
                         }
 
-                        bestPerformance = p;
                         bestStats = stats;
                     }
 

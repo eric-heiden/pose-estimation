@@ -13,7 +13,15 @@ void VisualizerObject::setPointSize(double size)
     if (Visualizer::_enabled)
         Visualizer::_instance.viewer()->setPointCloudRenderingProperties(
                 pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
-                size, _id);
+                    size, _id);
+}
+
+void VisualizerObject::setOpacity(double opacity)
+{
+    if (Visualizer::_enabled)
+        Visualizer::_instance.viewer()->setPointCloudRenderingProperties(
+                pcl::visualization::PCL_VISUALIZER_OPACITY,
+                    opacity, _id);
 }
 
 bool Visualizer::enabled()

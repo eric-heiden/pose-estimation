@@ -63,21 +63,20 @@ int main(int argc, char **argv)
 
     Parameter::parseAll(argc, argv);
 
-    Parameter::loadAll("optimal_configuration2.json");
-    Parameter::set("opt_enabled", false);
-    Parameter::set("opt_skip_descriptor", true);
-    Parameter::set("opt_skip_downsampler", true);
-    Parameter::set("opt_skip_feature_matcher", true);
-    Parameter::set("opt_skip_keypoint_extractor", true);
-    Parameter::set("opt_skip_transformation_estimator", true);
-    Parameter::set("opt_skip_pose_refiner", true);
-    Parameter::set("opt_skip_misc", true);
-    Parameter::set("opt_skip_hypothesis_verifier", false);
+    Parameter::loadAll("optimal_configuration.json");
+//    Parameter::set("opt_enabled", true);
+//    Parameter::set("opt_skip_descriptor", true);
+//    Parameter::set("opt_skip_downsampler", true);
+//    Parameter::set("opt_skip_feature_matcher", true);
+//    Parameter::set("opt_skip_keypoint_extractor", true);
+//    Parameter::set("opt_skip_transformation_estimator", false);
+//    Parameter::set("opt_skip_pose_refiner", true);
+//    Parameter::set("opt_skip_misc", true);
+//    Parameter::set("opt_skip_hypothesis_verifier", true);
+//    Parameter::set("pipeline_skip_te", false);
     //Parameter::saveAll();
 
     Visualizer::setEnabled(false);
-
-    config.useModule(PipelineModuleType::HypothesisVerifier, false);
 
     Logger::tic("Optimization");
     OptimizationResult res = opt.optimize(config);
@@ -91,9 +90,6 @@ int main(int argc, char **argv)
     }
 
     Visualizer::setEnabled(true);
-
-    config.useModule(PipelineModuleType::HypothesisVerifier, true);
-    Parameter::set("pipeline_skip_te", false);
 
     // actual pose estimation pipeline using the previously determined parameters
     config.run(source, target);

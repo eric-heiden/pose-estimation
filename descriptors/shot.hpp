@@ -60,12 +60,12 @@ namespace PoseEstimation
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::searchRadius = Parameter(
-            "SHOT", "search_r", (float)20.0f, "Search radius for finding neighbors",
+            "SHOT", "search_r", (float)15.0f, "Search radius for finding neighbors",
             { std::make_shared<VariableConstraint>(
               ParameterConstraintType::GreaterThan, "pc_normal_nn")
             });
 
     template<typename PointT>
     Parameter SHOTFeatureDescriptor<PointT>::lrfRadius = Parameter(
-            "SHOT", "LRF_r", (float)27.5f, "Local Reference Frame (LRF) radius of SHOT descriptor");
+            "SHOT", "LRF_r", (float)10.0f, "Local Reference Frame (LRF) radius of SHOT descriptor");
 }
