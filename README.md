@@ -10,6 +10,8 @@ This project features an object recognition pipeline to recognize and localize o
 
 the project aims at providing an experimentation platform that allows for fast evaluation of different 3d recognition methods.
 
+![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation.png)
+
 ## Requirements
 * PCL >=1.8 built with C++11 support (requires VTK >=6.0.1)
 * CMake >=3.1
