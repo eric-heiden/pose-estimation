@@ -23,7 +23,7 @@ Additionally, for Unit Testing, CppUnit is required.
 
 ## Usage
 
-Find instances of a single model or a collection of models in a scene. Using the `--folder` CLI argument, a directory of .pcd files containing the model candidates can be provided.
+Find instances of a single model or a collection of models in a scene. Using the `--folder` CLI argument, a directory of .pcd files containing the model candidates can be provided. Note that if this argument is activated, only the first .pcd file in that folder will be used as the input cloud for the optimization step to find good pose estimation parameters.
 
 The system will first identify clusters in the scene point cloud that serve as potential matching candidates for the provided models. For each input model, every scene object is tested for descriptor correspondences. If the transformation estimation succeeds between an input model and a scene object, the system outputs the transformation matrix to transform the input model to the scene object, and the average of the correspondence distances ("uncertainty", between 0 and 1, the lower the more confident is the matching) between the two point clouds.
 

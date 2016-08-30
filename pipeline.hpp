@@ -39,7 +39,12 @@ namespace PoseEstimation
         double correspondenceSlopeVariance;
 
         bool transformationSuccessful;
+
+        // transformation instances found by transformation estimation
         std::vector<Eigen::Matrix4f> transformationInstances;
+
+        // transformation candidates verified by hypothesis verification
+        std::vector<Eigen::Matrix4f> verifiedTransformationInstances;
 
         PipelineStats()
             : sourceDownsampledPoints(0),
@@ -72,6 +77,7 @@ namespace PoseEstimation
 
             _PRINT_PROPERTY(transformationSuccessful);
             _PRINT_PROPERTY(transformationInstances.size());
+            _PRINT_PROPERTY(verifiedTransformationInstances.size());
         }
 
         PipelineStats(const PipelineStats &) = default;
@@ -170,7 +176,10 @@ namespace PoseEstimation
 
             PipelineStats stats;
 
-            // downsample
+            //
+            // Downsampling
+            //
+
             if (performDownsampling.value<bool>())
             {
                 Logger::log(boost::format("%s...")
@@ -182,7 +191,10 @@ namespace PoseEstimation
             stats.sourceDownsampledPoints = source.size();
             stats.targetDownsampledPoints = target.size();
 
-            // keypoint extraction
+            //
+            // Keypoint Extraction
+            //
+
             PclPointCloud::Ptr source_keypoints(new PclPointCloud);
             PclPointCloud::Ptr target_keypoints(new PclPointCloud);
             if (performKeypointExtraction.value<bool>())
@@ -230,7 +242,10 @@ namespace PoseEstimation
             vo = Visualizer::visualize(tkp, Color::BLUE);
             vo.setPointSize(5.0);
 
-            // feature description
+            //
+            // Feature Description
+            //
+
             Logger::log(boost::format("%s...")
                         % _featureDescriptor->parameterCategory().description());
             typename PclDescriptorCloud::Ptr source_features(new PclDescriptorCloud);
@@ -241,12 +256,16 @@ namespace PoseEstimation
             _featureDescriptor->describe(target, target_keypoints, target_keypoint_normals, target_features);
             Logger::debug(boost::format("Computed %d features for target point cloud.") % target_features->size());
 
-            // matching
+            //
+            // Descriptor Matching
+            //
+
             Logger::log(boost::format("%s...")
                         % _featureMatcher->parameterCategory().description());
             pcl::CorrespondencesPtr correspondences(new pcl::Correspondences);
             _featureMatcher->match(source_features, target_features, correspondences);
 
+            // limit the number of displayed correspondences
             const size_t MAX_DISPLAYED_CORRS = 300;
             if (correspondences->size() > MAX_DISPLAYED_CORRS)
             {
@@ -254,7 +273,7 @@ namespace PoseEstimation
                                 % MAX_DISPLAYED_CORRS % correspondences->size());
             }
 
-            for (size_t j = 0; j < std::min(correspondences->size(), MAX_DISPLAYED_CORRS); ++j) // limit the number of displayed corrs.
+            for (size_t j = 0; j < std::min(correspondences->size(), MAX_DISPLAYED_CORRS); ++j)
             {
                 PointT &model_point = source_keypoints->at((*correspondences)[j].index_query);
                 PointT &scene_point = target_keypoints->at((*correspondences)[j].index_match);
@@ -296,7 +315,9 @@ namespace PoseEstimation
                 return stats;
             }
 
-            // transformation estimation
+            //
+            // Transformation Estimation
+            //
             Logger::log(boost::format("%s...")
                         % _transformationEstimator->parameterCategory().description());
             std::vector<Eigen::Matrix4f> transformations;
@@ -311,12 +332,14 @@ namespace PoseEstimation
             stats.transformationInstances = transformations;
             //_removeDuplicates(transformations);
 
+            // visualization of transformation candidates
             if (tes)
             {                
                 Logger::debug(boost::format("Clusters: %1%") % transformations.size());
 
                 if (!transformations.empty())
                 {
+                    // limit number of displayed instances
                     const size_t MAX_DISPLAYED_INSTANCES = 20;
                     if (transformations.size() > MAX_DISPLAYED_INSTANCES)
                     {
@@ -324,7 +347,7 @@ namespace PoseEstimation
                                         % MAX_DISPLAYED_INSTANCES % transformations.size());
                     }
 
-                    for (size_t i = 0; i < std::min(transformations.size(), MAX_DISPLAYED_INSTANCES); i++) // limit number of displayed instances
+                    for (size_t i = 0; i < std::min(transformations.size(), MAX_DISPLAYED_INSTANCES); i++)
                     {
                         Logger::debug(boost::format("Instance #%1%:\n%2%") % (i+1) % transformations[i]);
                         PC<PointT> vpc(source);
@@ -336,7 +359,10 @@ namespace PoseEstimation
                 }
             }
 
-            // pose refinement
+            //
+            // Pose Refinement
+            //
+
             if (performPoseRefinement.value<bool>() && !transformations.empty())
             {
                 Logger::log(boost::format("%s...")
@@ -354,23 +380,40 @@ namespace PoseEstimation
                 Logger::log("Skipping pose refinement.");
             }
 
-            // hypothesis verification
+            //
+            // Hypothesis Verification
+            //
+
             if (performHypothesisVerification.value<bool>() && !transformations.empty())
             {
                 Logger::log("Hypothesis verification...");
                 std::vector<bool> mask = _hypothesisVerifier->verify(source, target, transformations);
                 size_t hvc = 0;
-                for (size_t i = 0; i < transformations.size() && hvc < 5; i++) // limit number of displayed instances
+                // limit number of displayed instances
+                const size_t MAX_DISPLAYED_VERIFIED_INSTANCES = 5;
+                for (size_t i = 0; i < transformations.size(); i++)
                 {
                     if (!mask[i])
                         continue;
 
-                    Logger::debug(boost::format("Valid hypothesis #%1%:\n%2%") % (i+1) % transformations[i]);
-                    PC<PointT> vpc(source);
-                    vpc.transform(transformations[i]);
-                    VisualizerObject vpco = Visualizer::visualize(vpc, Color::GREEN);
-                    vpco.setPointSize(3.0);
+                    if (hvc < MAX_DISPLAYED_VERIFIED_INSTANCES)
+                    {
+                        Logger::debug(boost::format("Valid hypothesis #%1%:\n%2%") % (i+1) % transformations[i]);
+                        PC<PointT> vpc(source);
+                        vpc.transform(transformations[i]);
+                        VisualizerObject vpco = Visualizer::visualize(vpc, Color::GREEN);
+                        vpco.setPointSize(3.0);
+                    }
+
+                    stats.verifiedTransformationInstances.push_back(transformations[i]);
+
                     ++hvc;
+                }
+
+                if (hvc > MAX_DISPLAYED_VERIFIED_INSTANCES)
+                {
+                    Logger::warning(boost::format("Displayed only %i out of %i verified instances.")
+                                    % MAX_DISPLAYED_VERIFIED_INSTANCES % hvc);
                 }
             }
             else
