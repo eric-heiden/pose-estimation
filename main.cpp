@@ -159,7 +159,10 @@ int main(int argc, char **argv)
     // Object matching and pose estimation
     //
 
-    for (std::string &model_filename : model_filenames) {
+    float minUncertainty = std::numeric_limits<float>::max();
+    std::string bestModel = "";
+    for (std::string &model_filename : model_filenames)
+    {
         Logger::tic("Matching " + model_filename);
         loadPointCloud(model_filename, source);
         PipelineStats result = config.run(source, target);
@@ -176,10 +179,26 @@ int main(int argc, char **argv)
             Logger::log("% Verified transformation(s):");
             for (auto &transformation : result.verifiedTransformationInstances)
                 Logger::log(boost::format("%1%") % transformation);
+            if (result.averageCorrespondenceDistance < minUncertainty)
+            {
+                minUncertainty = result.averageCorrespondenceDistance;
+                bestModel = model_filename;
+            }
         }
 
         Logger::toc("Matching " + model_filename);
         Logger::log(std::string(50, '%'));
+    }
+
+    if (folder_mode)
+    {
+        Logger::log(std::string(100, '%'));
+        if (bestModel.empty())
+            Logger::error("None of the provided models matched the target point cloud.");
+        else
+            Logger::log(boost::format("The best matching point cloud is \"%s\" with an uncertainty of %.6f.")
+                        % bestModel % minUncertainty);
+        Logger::log(std::string(100, '%'));
     }
 
     //
