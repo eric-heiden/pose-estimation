@@ -25,11 +25,9 @@ Additionally, for Unit Testing, CppUnit is required.
 
 `$ ./PoseEstimation (--folder foldername)|(model1.pcd model2.pcd ...) scene.pcd`
 
+Find instances of a single model or a collection of models in a scene. Using the `--folder` CLI argument, a directory containing .pcd files representing the model candidates can be provided. Note that only the first .pcd file will be used as the input cloud for the optimization step to find good pose estimation parameters before the actual pipeline is executed on all models from the collection.
 
-
-Find instances of a single model or a collection of models in a scene. Using the `--folder` CLI argument, a directory containing .pcd files representing the model candidates can be provided. Note that if this argument is activated, only the first .pcd file in that folder will be used as the input cloud for the optimization step to find good pose estimation parameters.
-
-The system will first identify clusters in the scene point cloud that serve as potential matching candidates for the provided models. For each input model, every scene object is tested for descriptor correspondences. If the transformation estimation succeeds between an input model and a scene object, the system outputs the transformation matrix to transform the input model to the scene object, and the average of the correspondence distances ("uncertainty", between 0 and 1, the lower the more confident is the matching) between the two point clouds.
+For each input model, every scene object is tested for descriptor correspondences. If the transformation estimation succeeds between an input model and a scene object, the system outputs the transformation matrix to transform the input model to the scene object, and the average of the correspondence distances ("uncertainty", between 0 and 1, the lower the more confident is the matching) between the two point clouds.
 
 ## Configuration
 
@@ -137,12 +135,12 @@ The following parameters are available:
 |         `opt_alpha`                 | Relative parameter value during initialization in the corresponding value range | ([float] 0.2) constraints: (>= 0), (<= 1)	|
 |         `opt_enabled`               | Whether to optimize pipeline module parameters             | ([bool] 0)	|
 |     **config** | Configuration of modules to use for pose estimation pipeline	|   |
-| 		`config_descriptor`         | Feature descriptor module                                  | ([FPFH|RIFT|RSD|SHOT|SI|USC] FPFH)	|
-| 		`config_transformation_estimator` | Transformation estimator module                            | ([gc|hough|ransac|svd] gc)	|
-| 		`config_downsampler`        | Downsampler module                                         | ([uniformdown|voxelgrid] uniformdown)	|
+| 		`config_descriptor`         | Feature descriptor module                                  | ([FPFH/RIFT/RSD/SHOT/SI/USC] FPFH)	|
+| 		`config_transformation_estimator` | Transformation estimator module                            | ([gc/hough/ransac/svd] gc)	|
+| 		`config_downsampler`        | Downsampler module                                         | ([uniformdown/voxelgrid] uniformdown)	|
 | 		`config_feature_matcher`    | Feature matcher module                                     | ([kdmatch] kdmatch)	|
-| 		`config_keypoint_extractor` | Keypoint extractor module                                  | ([iss|uniform] uniform)	|
-| 		`config_poserefiner`        | Iterative pose refinement module                           | ([icp|ndt] icp)	|
+| 		`config_keypoint_extractor` | Keypoint extractor module                                  | ([iss/uniform] uniform)	|
+| 		`config_poserefiner`        | Iterative pose refinement module                           | ([icp/ndt] icp)	|
 |     **pc** | Point Cloud computations	|   |
 |         `pc_normal_nn`              | Search radius of nearest neighbor normal estimation        | ([float] 9.725) constraints: (>= 3), (<= 20)	|
 |     **pipeline** | Pose estimation pipeline	|   |
@@ -152,4 +150,6 @@ The following parameters are available:
 |         `pipeline_hyp_ver`          | Whether to use the hypothesis verification module while processing the pipeline | ([bool] 1)	|
 |         `pipeline_max_descs`        | Maximum allowable number of descriptors per cloud to be calculated | ([int] 300000)	|
 
-The [Point Cloud Library (PCL)](http://pointclouds.org/) provides most point-cloud related algorithms. [NLopt](http://ab-initio.mit.edu/wiki/index.php/NLopt) is used for the non-linear optimization of these parameters.
+The [Point Cloud Library (PCL)](http://pointclouds.org/) provides most point-cloud related algorithms. All of the involved parameters are resolution-independent by multiplying applicable parameters with the computed point cloud resolution. The resolution is defined as the mean distance of two closest points in the cloud.
+
+[NLopt](http://ab-initio.mit.edu/wiki/index.php/NLopt) is used for the non-linear parameter optimization.
