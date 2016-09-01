@@ -38,49 +38,49 @@ The system prints out possible instances for each of those 3 models by showing t
 
 #### Model 1
 ```
-[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[LOG 01-09-2016 04:17:57] % Matching results for point cloud objects/book.pcd:
-[LOG 01-09-2016 04:17:57] % Uncertainty: 0.343348
-[LOG 01-09-2016 04:17:57] % Verified transformation(s):
-[LOG 01-09-2016 04:17:57]     0.999768   0.00828556   -0.0198561     0.514141
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Matching results for point cloud objects/book.pcd:
+% Uncertainty: 0.343348
+% Verified transformation(s):
+    0.999768   0.00828556   -0.0198561     0.514141
  -0.00852746      0.99989   -0.0121292    0.0103949
    0.0197534    0.0122957     0.999729 -0.000965119
            0            0            0            1
-[LOG 01-09-2016 04:17:57] Matching objects/book.pcd finished in 00:00:03.868636
-[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Matching objects/book.pcd finished in 00:00:03.868636
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
 #### Model 2
 ```
-[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[LOG 01-09-2016 04:17:57] % Matching results for point cloud objects/mustard_centered.pcd:
-[LOG 01-09-2016 04:17:57] % Uncertainty: 0.597509
-[LOG 01-09-2016 04:17:57] % Verified transformation(s):
-[LOG 01-09-2016 04:17:57] -0.726818  0.282834  0.625891  0.522188
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Matching results for point cloud objects/mustard_centered.pcd:
+% Uncertainty: 0.597509
+% Verified transformation(s):
+-0.726818  0.282834  0.625891  0.522188
 -0.674479 -0.121883 -0.728164 0.0735832
 -0.129664 -0.951393  0.279353  0.586207
         0         0         0         1
-[LOG 01-09-2016 04:17:57] Matching objects/mustard_centered.pcd finished in 00:00:00.669852
-[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Matching objects/mustard_centered.pcd finished in 00:00:00.669852
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
 #### Model 3
 ```
-[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[LOG 01-09-2016 04:18:00] % Matching results for point cloud objects/book2.pcd:
-[LOG 01-09-2016 04:18:00] % Uncertainty: 0.460474
-[LOG 01-09-2016 04:18:00] % Verified transformation(s):
-[LOG 01-09-2016 04:18:00]   0.999502 0.00724483 -0.0307228   0.519118
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Matching results for point cloud objects/book2.pcd:
+% Uncertainty: 0.460474
+% Verified transformation(s):
+   0.999502 0.00724483 -0.0307228   0.519118
 -0.00631464   0.999522  0.0302664  0.0159141
- 0.0309274 -0.0300573    0.99907  0.0193727
-         0          0          0          1
-[LOG 01-09-2016 04:18:00] Matching objects/book2.pcd finished in 00:00:02.328845
-[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  0.0309274 -0.0300573    0.99907  0.0193727
+          0          0          0          1
+Matching objects/book2.pcd finished in 00:00:02.328845
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
 #### Result
 Since Model 1 had the lowest uncertainty, it is presented as the best matching candidate:
 ```
-[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[LOG 01-09-2016 04:18:00] % The best matching point cloud is "objects/book.pcd" with an uncertainty of 0.343348.
-[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The best matching point cloud is "objects/book.pcd" with an uncertainty of 0.343348.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
 
 ## Configuration
