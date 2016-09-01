@@ -38,6 +38,7 @@ The system can be configured via its CLI. Issue `$ PoseEstimation -h` to get a d
 A more comfortable way of setting the parameters is by providing a JSON file. The system stores such a file on each run and will read from the same file again to obtain the current settings. Configuration parameters are stored in a modular fashion following the system's ensemble of components, e.g. transformation estimators, feature descriptors, etc.
 
 The following parameters are available:
+
 | Parameter Name | Description | Type, Default value, Constraints |
 | -------------- | ----------- | -------------------------------- |
 | **Downsampler**	|     |     |
