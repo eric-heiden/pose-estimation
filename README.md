@@ -26,6 +26,18 @@ Additionally, for Unit Testing, CppUnit is required.
 `$ ./PoseEstimation (--folder foldername)|(model1.pcd model2.pcd ...) scene.pcd`
 
 
+
+Find instances of a single model or a collection of models in a scene. Using the `--folder` CLI argument, a directory containing .pcd files representing the model candidates can be provided. Note that if this argument is activated, only the first .pcd file in that folder will be used as the input cloud for the optimization step to find good pose estimation parameters.
+
+The system will first identify clusters in the scene point cloud that serve as potential matching candidates for the provided models. For each input model, every scene object is tested for descriptor correspondences. If the transformation estimation succeeds between an input model and a scene object, the system outputs the transformation matrix to transform the input model to the scene object, and the average of the correspondence distances ("uncertainty", between 0 and 1, the lower the more confident is the matching) between the two point clouds.
+
+## Configuration
+
+The system can be configured via its CLI. Issue `$ PoseEstimation -h` to get a descriptive overview of all the available CLI parameters.
+
+A more comfortable way of setting the parameters is by providing a JSON file. The system stores such a file on each run and will read from the same file again to obtain the current settings. Configuration parameters are stored in a modular fashion following the system's ensemble of components, e.g. transformation estimators, feature descriptors, etc.
+
+The following parameters are available:
 | Parameter Name | Description | Type, Default value, Constraints |
 | -------------- | ----------- | -------------------------------- |
 | **Downsampler**	|     |     |
@@ -139,12 +151,4 @@ Additionally, for Unit Testing, CppUnit is required.
 |         `pipeline_hyp_ver`          | Whether to use the hypothesis verification module while processing the pipeline | ([bool] 1)	|
 |         `pipeline_max_descs`        | Maximum allowable number of descriptors per cloud to be calculated | ([int] 300000)	|
 
-Find instances of a single model or a collection of models in a scene. Using the `--folder` CLI argument, a directory containing .pcd files representing the model candidates can be provided. Note that if this argument is activated, only the first .pcd file in that folder will be used as the input cloud for the optimization step to find good pose estimation parameters.
-
-The system will first identify clusters in the scene point cloud that serve as potential matching candidates for the provided models. For each input model, every scene object is tested for descriptor correspondences. If the transformation estimation succeeds between an input model and a scene object, the system outputs the transformation matrix to transform the input model to the scene object, and the average of the correspondence distances ("uncertainty", between 0 and 1, the lower the more confident is the matching) between the two point clouds.
-
-## Configuration
-
-The system can be configured via its CLI. Issue `$ PoseEstimation -h` to get a descriptive overview of all the available CLI parameters.
-
-A more comfortable way of setting the parameters is by providing a JSON file. The system stores such a file on each run and will read from the same file again to obtain the current settings. Configuration parameters are stored in a modular fashion following the system's ensemble of components, e.g. transformation estimators, feature descriptors, etc.
+The [Point Cloud Library (PCL)](http://pointclouds.org/) provides most point-cloud related algorithms. [NLopt](http://ab-initio.mit.edu/wiki/index.php/NLopt) is used for the non-linear optimization of these parameters.
