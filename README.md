@@ -29,9 +29,63 @@ Find instances of a single model or a collection of models in a scene. Using the
 
 For each input model, every scene object is tested for descriptor correspondences. If the transformation estimation succeeds between an input model and a scene object, the system outputs the transformation matrix to transform the input model to the scene object, and the average of the correspondence distances ("uncertainty", between 0 and 1, the lower the more confident is the matching) between the two point clouds.
 
+### Example
+`$ ./PoseEstimation --folder objects book.pcd`
+
+Load point clouds from directory "objects" (which contains 3 models) and find the best match with the scene point cloud.
+
+The system prints out possible instances for each of those 3 models by showing the transformation matrices and uncertainties for each of the candidates.
+
+#### Model 1
+```
+[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[LOG 01-09-2016 04:17:57] % Matching results for point cloud objects/book.pcd:
+[LOG 01-09-2016 04:17:57] % Uncertainty: 0.343348
+[LOG 01-09-2016 04:17:57] % Verified transformation(s):
+[LOG 01-09-2016 04:17:57]     0.999768   0.00828556   -0.0198561     0.514141
+ -0.00852746      0.99989   -0.0121292    0.0103949
+   0.0197534    0.0122957     0.999729 -0.000965119
+           0            0            0            1
+[LOG 01-09-2016 04:17:57] Matching objects/book.pcd finished in 00:00:03.868636
+[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+```
+#### Model 2
+```
+[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[LOG 01-09-2016 04:17:57] % Matching results for point cloud objects/mustard_centered.pcd:
+[LOG 01-09-2016 04:17:57] % Uncertainty: 0.597509
+[LOG 01-09-2016 04:17:57] % Verified transformation(s):
+[LOG 01-09-2016 04:17:57] -0.726818  0.282834  0.625891  0.522188
+-0.674479 -0.121883 -0.728164 0.0735832
+-0.129664 -0.951393  0.279353  0.586207
+        0         0         0         1
+[LOG 01-09-2016 04:17:57] Matching objects/mustard_centered.pcd finished in 00:00:00.669852
+[LOG 01-09-2016 04:17:57] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+```
+#### Model 3
+```
+[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[LOG 01-09-2016 04:18:00] % Matching results for point cloud objects/book2.pcd:
+[LOG 01-09-2016 04:18:00] % Uncertainty: 0.460474
+[LOG 01-09-2016 04:18:00] % Verified transformation(s):
+[LOG 01-09-2016 04:18:00]   0.999502 0.00724483 -0.0307228   0.519118
+-0.00631464   0.999522  0.0302664  0.0159141
+ 0.0309274 -0.0300573    0.99907  0.0193727
+         0          0          0          1
+[LOG 01-09-2016 04:18:00] Matching objects/book2.pcd finished in 00:00:02.328845
+[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+```
+#### Result
+Since Model 1 had the lowest uncertainty, it is presented as the best matching candidate:
+```
+[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[LOG 01-09-2016 04:18:00] % The best matching point cloud is "objects/book.pcd" with an uncertainty of 0.343348.
+[LOG 01-09-2016 04:18:00] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+```
+
 ## Configuration
 
-The system can be configured via its CLI. Issue `$ PoseEstimation -h` to get a descriptive overview of all the available CLI parameters.
+The system can be configured via its CLI. Issue `$ PoseEstimation -h` to get a descriptive overview of all the available CLI parameters (similar to the table below).
 
 A more comfortable way of setting the parameters is by providing a JSON file. The system stores such a file on each run and will read from the same file again to obtain the current settings. Configuration parameters are stored in a modular fashion following the system's ensemble of components, e.g. transformation estimators, feature descriptors, etc.
 
