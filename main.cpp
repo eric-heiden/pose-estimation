@@ -38,6 +38,8 @@ void loadPointCloud(std::string filename, PointCloud &cloud)
 
 int main(int argc, char **argv)
 {
+    Logger::log(boost::format("Eigen version %1%.%2%.%3%") %
+                EIGEN_WORLD_VERSION % EIGEN_MAJOR_VERSION % EIGEN_MINOR_VERSION);
     // disable PCL warnings
     pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
@@ -111,7 +113,7 @@ int main(int argc, char **argv)
     loadPointCloud(scene_filename, target);
 
     // move target cloud to the right to visualize source & target side by side
-    target.translate(0.5, 0.0, 0.0); // this will alter the resulting transformation matrix!
+    target.translate(0.5, 0.0, 0.0); //XXX this will alter the resulting transformation matrix!
 
     // load parameters from CLI and JSON configuration file
     Parameter::parseAll(argc, argv);
@@ -132,10 +134,10 @@ int main(int argc, char **argv)
 //    Parameter::set("opt_skip_downsampler", true);
 //    Parameter::set("opt_skip_feature_matcher", true);
 //    Parameter::set("opt_skip_keypoint_extractor", true);
-//    Parameter::set("opt_skip_transformation_estimator", false);
+//    Parameter::set("opt_skip_transformation_estimator", true);
 //    Parameter::set("opt_skip_pose_refiner", true);
 //    Parameter::set("opt_skip_misc", true);
-//    Parameter::set("opt_skip_hypothesis_verifier", true);
+//    Parameter::set("opt_skip_hypothesis_verifier", false);
 //    Parameter::set("pipeline_skip_te", false);
 
     Visualizer::setEnabled(false);
@@ -194,9 +196,9 @@ int main(int argc, char **argv)
     {
         Logger::log(std::string(100, '%'));
         if (bestModel.empty())
-            Logger::error("None of the provided models matched the target point cloud.");
+            Logger::error("% None of the provided models matched the target point cloud.");
         else
-            Logger::log(boost::format("The best matching point cloud is \"%s\" with an uncertainty of %.6f.")
+            Logger::log(boost::format("%% The best matching point cloud is \"%s\" with an uncertainty of %.6f.")
                         % bestModel % minUncertainty);
         Logger::log(std::string(100, '%'));
     }
