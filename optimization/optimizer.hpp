@@ -211,8 +211,9 @@ namespace PoseEstimation
                             //+ 0.03 * (stats.targetKeypointsExtracted / MAX_POINTS)
                             + 0.5 * stats.correspondencesFound / MAX_POINTS
                             //- stats.averageCorrespondenceDistance * 0.8
-                            - stats.correspondenceSlopeVariance / 10.0
-                            + .01 * stats.transformationInstances.size();
+                            //- stats.correspondenceSlopeVariance / 10.0
+                            + .01 * stats.transformationInstances.size()
+                            + .05 * stats.verifiedTransformationInstances.size();
                 }
 
                 /**
