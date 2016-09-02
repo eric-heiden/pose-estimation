@@ -12,6 +12,8 @@ the project aims at providing an experimentation platform that allows for fast e
 
 ![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation.png)
 
+![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation2.png)
+
 ## Requirements
 * PCL >=1.8 built with C++11 support (requires VTK >=6.0.1, Eigen ~3.2.0)
 * CMake >=3.1
