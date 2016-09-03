@@ -12,8 +12,6 @@ the project aims at providing an experimentation platform that allows for fast e
 
 ![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation.png)
 
-![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation2.png)
-
 ## Requirements
 * PCL >=1.8 built with C++11 support (requires VTK >=6.0.1, Eigen ~3.2.0)
 * CMake >=3.1
@@ -84,6 +82,10 @@ Since Model 1 had the lowest uncertainty, it is presented as the best matching c
 % The best matching point cloud is "objects/book.pcd" with an uncertainty of 0.343348.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ```
+
+After computing possible transformations, the scene point cloud and all model point clouds (translated by 0.5 units in x, see [main.cpp:116](https://github.com/eric-heiden/pose-estimation/blob/master/main.cpp#L116)) are visualized. The blue square-shaped points represent keypoints and the lines between them symbolize the descriptor correspondences. The model transformation candidates are displayed in different colors with some transparency. Successful transformation instances which were validated by the Hypothesis Verification step are highlighted in lime green.
+
+![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation2.png)
 
 ## Configuration
 
