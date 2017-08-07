@@ -10,6 +10,8 @@ This project features an object recognition pipeline to recognize and localize o
 
 the project aims at providing an experimentation platform that allows for fast evaluation of different 3d recognition methods.
 
+[Documentation](http://eric-heiden.com/pose-estimation/namespacePoseEstimation.html)
+
 ![PC Model Pose Estimation](https://github.com/aviate/pose-estimation/raw/documentation/pose-estimation.png)
 
 ## Requirements
